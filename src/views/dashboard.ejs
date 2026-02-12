@@ -1,0 +1,43 @@
+<%- include("layouts/header") %>
+<%- include("layouts/sidebar") %>
+<link rel="stylesheet" href="/css/style.css">
+
+<div class="dashboard-container">
+  <h2 style="margin-bottom: 30px; color: #333">Dashboard Overview</h2>
+
+  <div class="row">
+    <div class="col-md-3">
+      <div class="stat-card total-rooms">
+        <h4>Total Rooms</h4>
+        <p class="stat-number"><%= roomsCount %></p>
+        <p class="stat-label">Rooms in Inventory</p>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="stat-card booked-rooms">
+        <h4>Available Rooms</h4>
+        <p class="stat-number"><%= typeof availableRooms !== 'undefined' ? availableRooms : 0 %></p>
+        <p class="stat-label">Rooms Currently Available</p>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="stat-card restaurant">
+        <h4>Bookings</h4>
+        <p class="stat-number"><%= bookingsCount %></p>
+        <p class="stat-label">Total Reservations</p>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="stat-card pending-orders">
+        <h4>Pending Orders</h4>
+        <p class="stat-number"><%= pendingOrdersCount %></p>
+        <p class="stat-label">Awaiting Preparation</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include("layouts/footer") %>

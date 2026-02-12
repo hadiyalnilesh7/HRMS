@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - HRMS</title>
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+  <body class="login-page">
+    <div class="login-container">
+      <div class="login-card">
+        <% if (error) { %>
+          <div class="alert alert-danger text-center">
+            <%= error %>
+          </div>
+        <% } %>
+        <div class="login-body">
+          <form method="POST" action="/login">
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div class="password-wrapper">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Enter your password"
+                  required
+                />
+                <span class="password-toggle" onclick="togglePassword('password')">👁️</span>
+              </div>
+            </div>
+
+            <button type="submit" class="login-button">Sign In</button>
+          </form>
+          <div style="text-align: center; margin-top: 15px;">
+            <a href="/forgot-password" style="color: #007bff; text-decoration: none;">Forgot Password?</a>
+          </div>
+        </div>
+
+        <div class="login-footer">
+          <p>Don't have an account?</p>
+          <a href="/register">Create a new account</a>
+        </div>
+      </div>
+
+      <div class="back-home">
+        <a href="/">← Back to Home</a>
+      </div>
+    </div>
+
+    <script>
+      function togglePassword(fieldId) {
+        const input = document.getElementById(fieldId);
+        const toggle = event.target;
+        
+        if (input.type === 'password') {
+          input.type = 'text';
+          toggle.textContent = '👁️‍🗨️';
+        } else {
+          input.type = 'password';
+          toggle.textContent = '👁️';
+        }
+      }
+    </script>
+  </body>
+</html>

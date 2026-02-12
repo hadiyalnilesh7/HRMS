@@ -1,0 +1,7 @@
+node_modules/
+.env
+.env.local
+.env.*.local
+*.log
+public/uploads/idproof/*
+!public/uploads/idproof/.gitkeep

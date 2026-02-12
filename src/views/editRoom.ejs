@@ -1,0 +1,58 @@
+<%- include("./layouts/header") %>
+<%- include("./layouts/sidebar") %>
+
+<div class="container">
+  <div class="main-content" style="max-width: 600px;">
+    <h2>✏️ Edit Room</h2>
+    
+    <form action="/rooms/<%= room._id %>" method="POST" class="card p-4" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label for="roomNo" class="form-label"><strong>Room Number</strong></label>
+        <input
+          type="text"
+          id="roomNo"
+          class="form-control"
+          name="roomNo"
+          value="<%= room.roomNo %>"
+          required
+        />
+      </div>
+
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label for="type" class="form-label"><strong>Room Type</strong></label>
+        <% if (selectedRoomTypes && selectedRoomTypes.length > 0) { %>
+          <select
+            id="type"
+            class="form-control"
+            name="type"
+            required
+          >
+            <option value="">Select Room Type</option>
+            <% selectedRoomTypes.forEach(type => { %>
+              <option value="<%= type %>" <%= room.type === type ? 'selected' : '' %>><%= type %></option>
+            <% }) %>
+          </select>
+        <% } %>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label for="pricePerNight" class="form-label"><strong>Price Per Night</strong></label>
+        <input
+          type="number"
+          id="pricePerNight"
+          class="form-control"
+          name="pricePerNight"
+          value="<%= room.pricePerNight %>"
+          required
+        />
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Update Room</button>
+        <a href="/rooms" class="btn btn-secondary" style="flex: 1; text-align: center; text-decoration: none;">« Back</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include("./layouts/footer") %>

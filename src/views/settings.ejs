@@ -1,0 +1,103 @@
+<%- include("./layouts/header") %>
+<%- include("./layouts/sidebar") %>
+
+<div class="container-fluid">
+  <div class="main-content">
+    <h2>⚙️ Settings</h2>
+
+    <div class="settings-container" style="max-width: 700px; margin: 0 auto;">
+      <form method="POST" action="/settings/save">
+        <div class="card mb-3">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">🏢 Room Types</h5>
+          </div>
+          <div class="card-body">
+            <p class="text-muted">Select the room types you want to display when creating new rooms:</p>
+            <div id="roomTypesContainer">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="roomTypes" value="AC" id="roomTypeAC">
+                <label class="form-check-label" for="roomTypeAC">AC</label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="roomTypes" value="Non-AC" id="roomTypeNonAC">
+                <label class="form-check-label" for="roomTypeNonAC">Non-AC</label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="roomTypes" value="Deluxe" id="roomTypeDeluxe">
+                <label class="form-check-label" for="roomTypeDeluxe">Deluxe</label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="roomTypes" value="Suite" id="roomTypeSuite">
+                <label class="form-check-label" for="roomTypeSuite">Suite</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">🍽️ Menu Categories</h5>
+          </div>
+          <div class="card-body">
+            <p class="text-muted">Select the menu categories you want to display when creating new menu items:</p>
+            <div id="menuCategoriesContainer">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="menuCategories" value="Appetizer" id="menuCatAppetizer">
+                <label class="form-check-label" for="menuCatAppetizer">Appetizer</label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="menuCategories" value="Main" id="menuCatMain">
+                <label class="form-check-label" for="menuCatMain">Main</label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="menuCategories" value="Dessert" id="menuCatDessert">
+                <label class="form-check-label" for="menuCatDessert">Dessert</label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="menuCategories" value="Beverage" id="menuCatBeverage">
+                <label class="form-check-label" for="menuCatBeverage">Beverage</label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="menuCategories" value="FastFood" id="menuCatFastFood">
+                <label class="form-check-label" for="menuCatFastFood">Fast Food</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex">
+          <button type="submit" class="btn btn-primary">💾 Save Settings</button>
+          <a href="/dashboard" class="btn btn-secondary">« Back to Dashboard</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Load current settings
+    fetch('/settings/get')
+      .then(response => response.json())
+      .then(data => {
+        // Check the selected room types
+        if (data.selectedRoomTypes && data.selectedRoomTypes.length > 0) {
+          data.selectedRoomTypes.forEach(type => {
+            const checkbox = document.querySelector(`input[name="roomTypes"][value="${type}"]`);
+            if (checkbox) checkbox.checked = true;
+          });
+        }
+        
+        // Check the selected menu categories
+        if (data.selectedMenuCategories && data.selectedMenuCategories.length > 0) {
+          data.selectedMenuCategories.forEach(category => {
+            const checkbox = document.querySelector(`input[name="menuCategories"][value="${category}"]`);
+            if (checkbox) checkbox.checked = true;
+          });
+        }
+      })
+      .catch(err => console.log('Error loading settings:', err));
+  });
+</script>
+
+<%- include("./layouts/footer") %>

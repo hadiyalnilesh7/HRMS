@@ -1,0 +1,110 @@
+<%- include("./layouts/header") %>
+<%- include("./layouts/sidebar") %>
+
+<div class="container-fluid">
+  <div class="sidebar-wrapper">
+    
+    <div class="main-content">
+      <h2>🏢 Room Management</h2>
+
+      <% if (selectedRoomTypes && selectedRoomTypes.length > 0) { %>
+        <form method="POST" action="/rooms/add" class="card p-3 mb-4">
+          <h4>➕ Add New Room</h4>
+          <div class="form-group">
+            <input class="form-control" name="roomNo" placeholder="Room Number (e.g., 101)" required>
+          </div>
+          <div class="form-group">
+            <select class="form-control" name="type" required>
+              <option value="">Select Room Type</option>
+              <% selectedRoomTypes.forEach(type => { %>
+                <option value="<%= type %>"><%= type %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <input class="form-control" name="pricePerNight" placeholder="Price Per Night" type="number" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-action">➕ Add Room</button>
+        </form>
+      <% } else { %>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          <h5>⚠️ Configure Room Types First</h5>
+          <p>You need to select room types in Settings before you can add new rooms.</p>
+          <a href="/settings" class="btn btn-warning btn-sm">Go to Settings ⚙️</a>
+        </div>
+      <% } %>
+
+      <h4 class="mt-4">🏠 Room List</h4>
+      <form method="GET" action="/rooms" class="card p-3 mb-3">
+        <div class="row">
+          <div class="col-md-4">
+            <label class="form-label">Room Number</label>
+            <input type="text" name="roomNo" class="form-control" value="<%= roomNo || '' %>" placeholder="e.g., 101">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Room Type</label>
+            <select name="roomType" class="form-control">
+              <option value="">All Room Types</option>
+              <% if (selectedRoomTypes && selectedRoomTypes.length > 0) { %>
+                <% selectedRoomTypes.forEach(type => { %>
+                  <option value="<%= type %>" <%= roomType === type ? 'selected' : '' %>><%= type %></option>
+                <% }) %>
+              <% } %>
+            </select>
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-2">
+          <button type="submit" class="btn btn-primary">Search</button>
+          <a href="/rooms" class="btn btn-secondary">Clear</a>
+        </div>
+      </form>
+      <% if (rooms && rooms.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th data-label="Room No">Room No</th>
+                <th data-label="Type">Type</th>
+                <th data-label="Price/Night">Price Per Night</th>
+                <th data-label="Status">Status</th>
+                <th data-label="Actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% rooms.forEach(r => { %>
+                <tr>
+                  <td data-label="Room No"><strong><%= r.roomNo %></strong></td>
+                  <td data-label="Type"><%= r.type %></td>
+                  <td data-label="Price/Night">₹<%= r.pricePerNight %></td>
+                  <td data-label="Status">
+                    <span class="badge <%= r.status === 'available' ? 'bg-success' : 'bg-warning' %>">
+                      <%= r.status %>
+                    </span>
+                  </td>
+                  <td data-label="Actions">
+                    <div class="d-flex flex-column flex-md-row gap-2">
+                      <form method="POST" action="/rooms/editRoom" class="d-inline">
+                        <input type="hidden" name="id" value="<%= r._id %>">
+                        <button type="submit" class="btn btn-sm btn-success w-100 w-md-auto" onclick="return confirm('Are you sure you want to Edit Room')">✏️ Edit</button>
+                      </form>
+                      <form method="POST" action="/rooms/delete" class="d-inline">
+                        <input type="hidden" name="id" value="<%= r._id %>">
+                        <button type="submit" class="btn btn-sm btn-danger w-100 w-md-auto" onclick="return confirm('Are you sure you want to Delete Room')">🗑️ Delete</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="alert alert-info">
+          <p class="mb-0">📭 No rooms yet. Add one to get started!</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include("./layouts/footer") %>

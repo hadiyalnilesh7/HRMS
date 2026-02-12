@@ -1,0 +1,189 @@
+<%- include("./layouts/header") %> 
+<%- include("./layouts/sidebar") %>
+
+<div class="container order-form">
+    <form method="POST" action="/order/addOrder">
+        <h4>Place New Order</h4>
+        
+        <div class="order-panel">
+          <h5>Select Room & Customer:</h5>
+          <div class="order-row">
+            <div>
+              <label class="form-label">Room Number: <span class="required">*</span></label>
+              <select id="roomSelect" name="room" class="form-control" required>
+                <option value="">-- Select Room --</option>
+                <% if (bookings && bookings.length > 0) { %>
+                  <% bookings.forEach(b => { %>
+                    <option value="<%= b.room._id %>" data-customer="<%= b.customerName %>">Room <%= b.room.roomNo %></option>
+                  <% }) %>
+                <% } %>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Customer Name: <span class="required">*</span></label>
+              <input type="text" id="customerNameInput" name="customerName" class="form-control" placeholder="Auto-filled from room" required>
+            </div>
+          </div>
+        </div>
+        
+        <div class="order-panel">
+          <h5>Select Menu Items:</h5>
+          <% if (menu && menu.length > 0) { %>
+            <div class="order-items-grid">
+              <% menu.forEach(item => { %>
+                <div class="order-item">
+                  <label class="menu-label">
+                    <input type="checkbox" name="selectedItems" value="<%= item._id %>" class="menu-checkbox" data-price="<%= item.price %>">
+                    <span><strong><%= item.name %></strong> - ₹<%= item.price %></span>
+                  </label>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+        
+        <div class="order-total">
+          <h5>Total Amount: <span class="total-amount">₹<span id="totalAmount">0</span></span></h5>
+          <input type="hidden" name="items" id="itemsInput" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary spaced-button">🛒 Place Order</button>
+    </form>
+
+    <script>
+      const roomSelect = document.getElementById('roomSelect');
+      const customerNameInput = document.getElementById('customerNameInput');
+      const checkboxes = document.querySelectorAll('.menu-checkbox');
+      const itemsInput = document.getElementById('itemsInput');
+      const totalAmountSpan = document.getElementById('totalAmount');
+      const form = document.querySelector('form');
+
+      // Auto-fill customer name when room is selected
+      roomSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const customerName = selectedOption.getAttribute('data-customer');
+        customerNameInput.value = customerName || '';
+      });
+
+      // Validate form before submission
+      form.addEventListener('submit', function(e) {
+        if (!roomSelect.value) {
+          e.preventDefault();
+          alert('Please select a room');
+          return false;
+        }
+        if (!customerNameInput.value) {
+          e.preventDefault();
+          alert('Customer name is required');
+          return false;
+        }
+        if (!itemsInput.value) {
+          e.preventDefault();
+          alert('Please select at least one menu item');
+          return false;
+        }
+      });
+
+      function updateOrder() {
+        const selectedItems = Array.from(checkboxes)
+          .filter(cb => cb.checked)
+          .map(cb => cb.value);
+        
+        const total = Array.from(checkboxes)
+          .filter(cb => cb.checked)
+          .reduce((sum, cb) => sum + parseInt(cb.dataset.price), 0);
+
+        itemsInput.value = selectedItems.join(',');
+        totalAmountSpan.textContent = total;
+      }
+
+      checkboxes.forEach(cb => cb.addEventListener('change', updateOrder));
+    </script>
+
+    <h4>Order List</h4>
+      <div class="order-section" style="margin-bottom:20px;">
+        <h5>Pending Deliveries:</h5>
+        <% if (pendingOrders && pendingOrders.length > 0) { %>
+          <ul class="order-list">
+            <% pendingOrders.forEach(o => { %>
+              <li class="order-card pending">
+                <div class="order-row">
+                  <div>
+                    <strong class="order-amount">₹<%= o.total %></strong>
+                    <% if (o.room) { %>
+                      <br><small class="meta"><strong>🏠 Room <%= o.room.roomNo %></strong></small>
+                    <% } %>
+                    <% if (o.customerName) { %>
+                      <br><small class="meta"><strong>👤 <%= o.customerName %></strong></small>
+                    <% } %>
+                    <br><small class="text-muted">
+                      <% if (Array.isArray(o.items)) { %>
+                        <% o.items.forEach((item, idx) => { %>
+                          <%= item.name %> (₹<%= item.price %>)<% if (idx < o.items.length - 1) { %>, <% } %>
+                        <% }) %>
+                      <% } else { %>
+                        <%= o.items %>
+                      <% } %>
+                    </small>
+                  </div>
+                  <form method="POST" action="/order/<%= o._id %>/delivery" class="order-actions">
+                    <input type="hidden" name="deliveryStatus" value="delivered">
+                    <button type="submit" class="btn btn-success">✓ Mark Delivered</button>
+                  </form>
+                </div>
+              </li>
+            <% }) %>
+          </ul>
+        <% } else { %>
+          <p class="text-muted success">✓ All orders delivered!</p>
+        <% } %>
+      </div>
+      <form method="GET" action="/order" class="card p-2 mb-3" style="max-width:640px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="flex:1;">
+            <label class="form-label">From</label>
+            <input class="form-control" type="date" name="from" value="<%= typeof from !== 'undefined' ? from : '' %>">
+          </div>
+          <div style="flex:1;">
+            <label class="form-label">To</label>
+            <input class="form-control" type="date" name="to" value="<%= typeof to !== 'undefined' ? to : '' %>">
+          </div>
+          <div style="display:flex;align-items:flex-end; margin-top:33px; margin-left:5px">
+            <button type="submit" class="btn btn-primary" style="height:38px; width:100px">Filter</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="order-section">
+        <h5>Delivered Orders:</h5>
+        <% if (deliveredOrders && deliveredOrders.length > 0) { %>
+          <ul class="order-list">
+            <% deliveredOrders.forEach(o => { %>
+              <li class="order-card delivered">
+                <div>
+                  <strong class="delivered-amount">✓ ₹<%= o.total %></strong>
+                  <% if (o.room) { %>
+                    <br><small class="meta"><strong>🏠 Room <%= o.room.roomNo %></strong></small>
+                  <% } %>
+                  <% if (o.customerName) { %>
+                    <br><small class="meta"><strong>👤 <%= o.customerName %></strong></small>
+                  <% } %>
+                  <br><small class="text-muted">
+                    <% if (Array.isArray(o.items)) { %>
+                      <% o.items.forEach((item, idx) => { %>
+                        <%= item.name %> (₹<%= item.price %>)<% if (idx < o.items.length - 1) { %>, <% } %>
+                      <% }) %>
+                    <% } else { %>
+                      <%= o.items %>
+                    <% } %>
+                  </small>
+                </div>
+              </li>
+            <% }) %>
+          </ul>
+        <% } else { %>
+          <p class="text-muted">No delivered orders found for the selected range.</p>
+        <% } %>
+      </div>
+</div>
+<%- include("./layouts/footer") %>

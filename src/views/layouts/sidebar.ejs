@@ -1,0 +1,41 @@
+<div class="d-flex">
+  <div class="mobile-header d-md-none">
+    <button id="sidebar-toggle" class="sidebar-toggle btn btn-dark">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="mobile-header-title">
+      <i class="fa-solid fa-hotel"></i>
+      <span><%= (user && user.hotelName) ? user.hotelName : 'Guest' %></span>
+    </div>
+  </div>
+
+  <aside class="sidebar bg-dark text-white">
+    <div class="sidebar-brand p-3">
+      <div class="sidebar-brand-row">
+        <h4 class="mb-0"><i class="fa-solid fa-hotel"></i> <%= (user && user.hotelName) ? user.hotelName : 'Guest' %></h4>
+        <div class="sidebar-header d-md-none">
+          <button id="sidebar-toggle-close" class="btn-close btn-close-white" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-user p-3">
+      <div class="sidebar-avatar"> <%= (user && user.name) ? user.name.charAt(0).toUpperCase() : 'A' %> </div>
+      <div class="sidebar-username"> <%= (user && user.name) ? user.name : 'Guest' %> </div>
+    </div>
+
+    <nav class="sidebar-nav p-2">
+      <a href="/dashboard" class="nav-link"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+      <a href="/rooms" class="nav-link"><i class="fa-solid fa-door-open"></i> Rooms</a>
+      <a href="/booking" class="nav-link"><i class="fa-solid fa-calendar-check"></i> Bookings</a>
+      <a href="/menu" class="nav-link"><i class="fa-solid fa-utensils"></i> Menu</a>
+      <a href="/order" class="nav-link"><i class="fa-solid fa-shopping-bag"></i> Orders</a>
+      <a href="/settings" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+
+    <div class="sidebar-footer p-3">
+      <a href="/logout" class="nav-link" onclick="return confirm('Are you sure you want to logout?')"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+<div class="p-4 flex-grow-1">
