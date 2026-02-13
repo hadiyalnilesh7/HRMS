@@ -10,9 +10,8 @@ exports.orderPage = async (req, res) => {
     status: "checked-in",
   }).populate("room");
 
-  // Date range filtering
-  const from = (req.query.from || "").trim();
-  const to = (req.query.to || "").trim();
+  // Name-wise filtering
+  const customerName = (req.query.customerName || "").trim();
 
   const pendingOrders = await Order.find({
     owner: ownerId,
@@ -22,15 +21,11 @@ exports.orderPage = async (req, res) => {
     .populate("booking");
 
   let deliveredOrders = [];
-  if (from && to) {
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
-
-    toDate.setHours(23, 59, 59, 999);
+  if (customerName) {
     deliveredOrders = await Order.find({
       owner: ownerId,
       deliveryStatus: "delivered",
-      createdAt: { $gte: fromDate, $lte: toDate },
+      customerName: { $regex: customerName, $options: "i" },
     })
       .populate("room")
       .populate("booking")
@@ -52,8 +47,7 @@ exports.orderPage = async (req, res) => {
     currentPage: "order",
     menu,
     bookings,
-    from: from || undefined,
-    to: to || undefined,
+    customerName: customerName || undefined,
   });
 };
 

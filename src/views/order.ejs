@@ -141,12 +141,8 @@
       <form method="GET" action="/order" class="card p-2 mb-3" style="max-width:640px;">
         <div style="display:flex;gap:12px;align-items:flex-start;">
           <div style="flex:1;">
-            <label class="form-label">From</label>
-            <input class="form-control" type="date" name="from" value="<%= typeof from !== 'undefined' ? from : '' %>">
-          </div>
-          <div style="flex:1;">
-            <label class="form-label">To</label>
-            <input class="form-control" type="date" name="to" value="<%= typeof to !== 'undefined' ? to : '' %>">
+            <label class="form-label">Customer Name</label>
+            <input class="form-control" type="text" name="customerName" placeholder="Search by customer name" value="<%= typeof customerName !== 'undefined' ? customerName : '' %>">
           </div>
           <div style="display:flex;align-items:flex-end; margin-top:33px; margin-left:5px">
             <button type="submit" class="btn btn-primary" style="height:38px; width:100px">Filter</button>
