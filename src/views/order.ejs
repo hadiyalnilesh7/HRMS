@@ -1,185 +1,253 @@
 <%- include("./layouts/header") %> 
 <%- include("./layouts/sidebar") %>
 
-<div class="container order-form">
-    <form method="POST" action="/order/addOrder">
-        <h4>Place New Order</h4>
-        
-        <div class="order-panel">
-          <h5>Select Room & Customer:</h5>
-          <div class="order-row">
-            <div>
-              <label class="form-label">Room Number: <span class="required">*</span></label>
-              <select id="roomSelect" name="room" class="form-control" required>
-                <option value="">-- Select Room --</option>
-                <% if (bookings && bookings.length > 0) { %>
-                  <% bookings.forEach(b => { %>
-                    <option value="<%= b.room._id %>" data-customer="<%= b.customerName %>">Room <%= b.room.roomNo %></option>
+<div class="dashboard-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">🛎️ Room Service & Orders</h2>
+      <p class="text-muted mb-0">Manage food orders for guests.</p>
+    </div>
+  </div>
+
+  <div class="row g-4 justify-content-center">
+    <!-- Order Form Section -->
+    <div class="col-12 col-xl-7">
+      <div class="card sticky-top" style="top: 20px; z-index: 1;">
+        <div class="card-header bg-white py-3">
+          <h5 class="mb-0"><i class="fa-solid fa-utensils me-2 text-primary"></i> Place New Order</h5>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/order/addOrder" id="orderForm">
+            <!-- Room & Customer Selection -->
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label">Room Number <span class="text-danger">*</span></label>
+                <select id="roomSelect" name="room" class="form-select" required>
+                  <option value="">-- Select Room --</option>
+                  <% if (bookings && bookings.length > 0) { %>
+                    <% bookings.forEach(b => { %>
+                      <option value="<%= b.room._id %>" data-customer="<%= b.customerName %>">Room <%= b.room.roomNo %></option>
+                    <% }) %>
+                  <% } %>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+                <input type="text" id="customerNameInput" name="customerName" class="form-control" placeholder="Auto-filled from room" required readonly>
+              </div>
+            </div>
+
+            <!-- Menu Selection -->
+            <div class="mb-4">
+              <label class="form-label mb-3">Select Menu Items</label>
+              <% if (menu && menu.length > 0) { %>
+                <div class="row g-3">
+                  <% menu.forEach(item => { %>
+                    <div class="col-12 col-md-6">
+                      <div class="menu-item-card" onclick="toggleSelection(this)">
+                        <input class="menu-checkbox form-check-input mt-0" type="checkbox" name="selectedItems" value="<%= item._id %>" id="item_<%= item._id %>" data-price="<%= item.price %>">
+                        <div class="menu-details ms-2">
+                          <label class="menu-name mb-0 cursor-pointer" for="item_<%= item._id %>">
+                            <%= item.name %>
+                          </label>
+                          <small class="menu-price">₹<%= item.price %></small>
+                        </div>
+                      </div>
+                    </div>
                   <% }) %>
-                <% } %>
-              </select>
-            </div>
-            <div>
-              <label class="form-label">Customer Name: <span class="required">*</span></label>
-              <input type="text" id="customerNameInput" name="customerName" class="form-control" placeholder="Auto-filled from room" required>
-            </div>
-          </div>
-        </div>
-        
-        <div class="order-panel">
-          <h5>Select Menu Items:</h5>
-          <% if (menu && menu.length > 0) { %>
-            <div class="order-items-grid">
-              <% menu.forEach(item => { %>
-                <div class="order-item">
-                  <label class="menu-label">
-                    <input type="checkbox" name="selectedItems" value="<%= item._id %>" class="menu-checkbox" data-price="<%= item.price %>">
-                    <span><strong><%= item.name %></strong> - ₹<%= item.price %></span>
-                  </label>
                 </div>
-              <% }) %>
+              <% } else { %>
+                <div class="alert alert-warning">No menu items available.</div>
+              <% } %>
             </div>
-          <% } %>
+
+            <!-- Total & Submit -->
+            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded border">
+              <div>
+                <small class="text-muted d-block uppercase">Total Amount</small>
+                <span class="fs-4 fw-bold text-primary">₹<span id="totalAmount">0</span></span>
+              </div>
+              <input type="hidden" name="items" id="itemsInput">
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="fa-solid fa-bell-concierge me-2"></i> Place Order
+              </button>
+            </div>
+          </form>
         </div>
-        
-        <div class="order-total">
-          <h5>Total Amount: <span class="total-amount">₹<span id="totalAmount">0</span></span></h5>
-          <input type="hidden" name="items" id="itemsInput" required>
-        </div>
-        
-        <button type="submit" class="btn btn-primary spaced-button">🛒 Place Order</button>
-    </form>
-
-    <script>
-      const roomSelect = document.getElementById('roomSelect');
-      const customerNameInput = document.getElementById('customerNameInput');
-      const checkboxes = document.querySelectorAll('.menu-checkbox');
-      const itemsInput = document.getElementById('itemsInput');
-      const totalAmountSpan = document.getElementById('totalAmount');
-      const form = document.querySelector('form');
-
-      // Auto-fill customer name when room is selected
-      roomSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const customerName = selectedOption.getAttribute('data-customer');
-        customerNameInput.value = customerName || '';
-      });
-
-      // Validate form before submission
-      form.addEventListener('submit', function(e) {
-        if (!roomSelect.value) {
-          e.preventDefault();
-          alert('Please select a room');
-          return false;
-        }
-        if (!customerNameInput.value) {
-          e.preventDefault();
-          alert('Customer name is required');
-          return false;
-        }
-        if (!itemsInput.value) {
-          e.preventDefault();
-          alert('Please select at least one menu item');
-          return false;
-        }
-      });
-
-      function updateOrder() {
-        const selectedItems = Array.from(checkboxes)
-          .filter(cb => cb.checked)
-          .map(cb => cb.value);
-        
-        const total = Array.from(checkboxes)
-          .filter(cb => cb.checked)
-          .reduce((sum, cb) => sum + parseInt(cb.dataset.price), 0);
-
-        itemsInput.value = selectedItems.join(',');
-        totalAmountSpan.textContent = total;
-      }
-
-      checkboxes.forEach(cb => cb.addEventListener('change', updateOrder));
-    </script>
-
-    <h4>Order List</h4>
-      <div class="order-section" style="margin-bottom:20px;">
-        <h5>Pending Deliveries:</h5>
-        <% if (pendingOrders && pendingOrders.length > 0) { %>
-          <ul class="order-list">
-            <% pendingOrders.forEach(o => { %>
-              <li class="order-card pending">
-                <div class="order-row">
-                  <div>
-                    <strong class="order-amount">₹<%= o.total %></strong>
-                    <% if (o.room) { %>
-                      <br><small class="meta"><strong>🏠 Room <%= o.room.roomNo %></strong></small>
-                    <% } %>
-                    <% if (o.customerName) { %>
-                      <br><small class="meta"><strong>👤 <%= o.customerName %></strong></small>
-                    <% } %>
-                    <br><small class="text-muted">
-                      <% if (Array.isArray(o.items)) { %>
-                        <% o.items.forEach((item, idx) => { %>
-                          <%= item.name %> (₹<%= item.price %>)<% if (idx < o.items.length - 1) { %>, <% } %>
-                        <% }) %>
-                      <% } else { %>
-                        <%= o.items %>
-                      <% } %>
-                    </small>
-                  </div>
-                  <form method="POST" action="/order/<%= o._id %>/delivery" class="order-actions">
-                    <input type="hidden" name="deliveryStatus" value="delivered">
-                    <button type="submit" class="btn btn-success">✓ Mark Delivered</button>
-                  </form>
-                </div>
-              </li>
-            <% }) %>
-          </ul>
-        <% } else { %>
-          <p class="text-muted success">✓ All orders delivered!</p>
-        <% } %>
       </div>
-      <form method="GET" action="/order" class="card p-2 mb-3" style="max-width:640px;">
-        <div style="display:flex;gap:12px;align-items:flex-start;">
-          <div style="flex:1;">
-            <label class="form-label">Customer Name</label>
-            <input class="form-control" type="text" name="customerName" placeholder="Search by customer name" value="<%= typeof customerName !== 'undefined' ? customerName : '' %>">
-          </div>
-          <div style="display:flex;align-items:flex-end; margin-top:33px; margin-left:5px">
-            <button type="submit" class="btn btn-primary" style="height:38px; width:100px">Filter</button>
-          </div>
-        </div>
-      </form>
+    </div>
 
-      <div class="order-section">
-        <h5>Delivered Orders:</h5>
-        <% if (deliveredOrders && deliveredOrders.length > 0) { %>
-          <ul class="order-list">
-            <% deliveredOrders.forEach(o => { %>
-              <li class="order-card delivered">
-                <div>
-                  <strong class="delivered-amount">✓ ₹<%= o.total %></strong>
-                  <% if (o.room) { %>
-                    <br><small class="meta"><strong>🏠 Room <%= o.room.roomNo %></strong></small>
-                  <% } %>
-                  <% if (o.customerName) { %>
-                    <br><small class="meta"><strong>👤 <%= o.customerName %></strong></small>
-                  <% } %>
-                  <br><small class="text-muted">
+    <!-- Order List Section -->
+    <div class="col-12 col-xl-5">
+      <!-- Pending Orders -->
+      <div class="card mb-4">
+        <div class="card-header bg-warning-subtle text-warning-emphasis border-bottom-0 py-3">
+          <h5 class="mb-0"><i class="fa-solid fa-clock me-2"></i> Pending Orders</h5>
+        </div>
+        <div class="card-body p-0">
+          <% if (pendingOrders && pendingOrders.length > 0) { %>
+            <div class="list-group list-group-flush">
+              <% pendingOrders.forEach(o => { %>
+                <div class="list-group-item p-3">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <span class="badge bg-dark rounded-pill mb-2">Room <%= o.room ? o.room.roomNo : 'N/A' %></span>
+                      <h6 class="mb-1"><%= o.customerName %></h6>
+                    </div>
+                    <span class="fs-5 fw-bold text-primary">₹<%= o.total %></span>
+                  </div>
+                  
+                  <div class="bg-light p-2 rounded small mb-3 text-muted">
                     <% if (Array.isArray(o.items)) { %>
-                      <% o.items.forEach((item, idx) => { %>
-                        <%= item.name %> (₹<%= item.price %>)<% if (idx < o.items.length - 1) { %>, <% } %>
-                      <% }) %>
+                      <%= o.items.map(i => `${i.name} (₹${i.price})`).join(', ') %>
                     <% } else { %>
                       <%= o.items %>
                     <% } %>
-                  </small>
+                  </div>
+
+                  <form method="POST" action="/order/<%= o._id %>/delivery">
+                    <input type="hidden" name="deliveryStatus" value="delivered">
+                    <button type="submit" class="btn btn-sm btn-success w-100">
+                      <i class="fa-solid fa-check me-1"></i> Mark as Delivered
+                    </button>
+                  </form>
                 </div>
-              </li>
-            <% }) %>
-          </ul>
-        <% } else { %>
-          <p class="text-muted">No delivered orders found for the selected range.</p>
-        <% } %>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <div class="text-center py-4 text-muted">
+              <i class="fa-solid fa-check-circle fa-2x mb-2 text-success opacity-50"></i>
+              <p class="mb-0">No pending orders!</p>
+            </div>
+          <% } %>
+        </div>
       </div>
-</div>
+
+      <!-- Delivered Orders -->
+      <div class="card">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fa-solid fa-history me-2 text-muted"></i> History</h5>
+          
+          <form method="GET" action="/order" class="d-flex gap-2">
+            <input type="text" name="customerName" class="form-control form-control-sm" placeholder="Customer Name" value="<%= typeof customerName !== 'undefined' ? customerName : '' %>">
+            <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-search"></i></button>
+          </form>
+        </div>
+        <div class="card-body p-0">
+          <% if (deliveredOrders && deliveredOrders.length > 0) { %>
+            <div class="list-group list-group-flush">
+              <% deliveredOrders.forEach(o => { %>
+                <div class="list-group-item p-3 opacity-75">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <small class="text-success fw-bold text-uppercase"><i class="fa-solid fa-check-double me-1"></i> Delivered</small>
+                      <h6 class="mb-1 mt-1"><%= o.customerName %> <small class="text-muted fw-normal">(Room <%= o.room ? o.room.roomNo : 'N/A' %>)</small></h6>
+                      <small class="text-muted">
+                        <% if (Array.isArray(o.items)) { %>
+                            <%= o.items.map(i => i.name).join(', ') %>
+                        <% } else { %>
+                            <%= o.items %>
+                        <% } %>
+                      </small>
+                    </div>
+                    <span class="fw-bold">₹<%= o.total %></span>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <div class="p-3 text-center text-muted small">No history found.</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+<script>
+  // DOM Elements
+  const roomSelect = document.getElementById('roomSelect');
+  const customerNameInput = document.getElementById('customerNameInput');
+  const itemsInput = document.getElementById('itemsInput');
+  const totalAmountSpan = document.getElementById('totalAmount');
+  const form = document.getElementById('orderForm');
+
+  // Helper to get all checkboxes (they are dynamic)
+  // We attach event listener to document to handle clicks but updateOrder iterates them
+  
+  // Auto-fill customer name when room is selected
+  roomSelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const customerName = selectedOption.getAttribute('data-customer');
+    customerNameInput.value = customerName || '';
+  });
+
+  // Calculate Total & Update Selection Styles
+  function updateOrder() {
+    const checkboxes = document.querySelectorAll('.menu-checkbox');
+    const selectedCheckboxes = Array.from(checkboxes).filter(cb => cb.checked);
+    const selectedIds = selectedCheckboxes.map(cb => cb.value);
+    itemsInput.value = selectedIds.join(',');
+
+    const total = selectedCheckboxes.reduce((sum, cb) => {
+      return sum + parseFloat(cb.getAttribute('data-price') || 0);
+    }, 0);
+
+    totalAmountSpan.textContent = total;
+
+    // Update styling manually for browsers that don't support :has or just for robustness
+    checkboxes.forEach(cb => {
+      const card = cb.closest('.menu-item-card');
+      if (cb.checked) {
+        card.classList.add('selected');
+      } else {
+        card.classList.remove('selected');
+      }
+    });
+  }
+  
+  // Toggle selection when clicking the card (if not clicking checkbox directly)
+  function toggleSelection(card) {
+    // If the click target appears to be the checkbox or label, let default event bubble
+    // But since we have onclick on parent, we need to be careful not to double toggle
+    // However, clicking checkbox triggers change event. Clicking card should trigger click on checkbox.
+    
+    // Actually, simpler approach:
+    // The Input is inside the card. If I click the card (but NOT the input), toggle input.
+    const checkbox = card.querySelector('input[type="checkbox"]');
+    
+    // We rely on event bubbling for the checkbox change to call updateOrder
+    // But we need to handle the "click background" logic
+    // The simplest way is to let the label handle the click for the text. 
+    // And for the padding area, we can manually check.
+  }
+
+  // Attach change listener to all checkboxes
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('menu-checkbox')) {
+      updateOrder();
+    }
+  });
+
+  // Since we removed individual listeners in favor of delegation or re-querying:
+  // Initial update
+  updateOrder();
+
+  // Form Validation
+  form.addEventListener('submit', function(e) {
+    if (!roomSelect.value) {
+      e.preventDefault();
+      showCustomAlert('Please select a room', 'Validation Error');
+      return false;
+    }
+    if (!itemsInput.value) {
+      e.preventDefault();
+      showCustomAlert('Please select at least one menu item', 'Validation Error');
+      return false;
+    }
+  });
+</script>
+
+<style>
+.cursor-pointer { cursor: pointer; }
+</style>
+
 <%- include("./layouts/footer") %>

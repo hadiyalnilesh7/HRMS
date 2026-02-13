@@ -1,40 +1,104 @@
 <%- include("layouts/header") %>
 <%- include("layouts/sidebar") %>
-<link rel="stylesheet" href="/css/style.css">
 
 <div class="dashboard-container">
-  <h2 style="margin-bottom: 30px; color: #333">Dashboard Overview</h2>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">Dashboard</h2>
+      <p class="text-muted mb-0">Welcome back, <%= (user && user.name) ? user.name : 'Administrator' %>!</p>
+    </div>
+    <div class="d-none d-md-block">
+      <span class="badge bg-light text-dark border p-2"><i class="far fa-calendar-alt me-1"></i> <%= new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+    </div>
+  </div>
 
-  <div class="row">
-    <div class="col-md-3">
+  <div class="row g-4">
+    <!-- Total Rooms Card -->
+    <div class="col-12 col-md-6 col-xl-3">
       <div class="stat-card total-rooms">
-        <h4>Total Rooms</h4>
-        <p class="stat-number"><%= roomsCount %></p>
-        <p class="stat-label">Rooms in Inventory</p>
+        <div>
+          <h4>Total Rooms</h4>
+          <p class="stat-number"><%= roomsCount %></p>
+        </div>
+        <div class="d-flex justify-content-between align-items-end">
+          <p class="stat-label mb-0">Inventory</p>
+          <i class="fa-solid fa-bed fa-2x opacity-50"></i>
+        </div>
       </div>
     </div>
     
-    <div class="col-md-3">
+    <!-- Available Rooms Card -->
+    <div class="col-12 col-md-6 col-xl-3">
       <div class="stat-card booked-rooms">
-        <h4>Available Rooms</h4>
-        <p class="stat-number"><%= typeof availableRooms !== 'undefined' ? availableRooms : 0 %></p>
-        <p class="stat-label">Rooms Currently Available</p>
+        <div>
+          <h4>Available Rooms</h4>
+          <p class="stat-number"><%= typeof availableRooms !== 'undefined' ? availableRooms : 0 %></p>
+        </div>
+        <div class="d-flex justify-content-between align-items-end">
+          <p class="stat-label mb-0">Ready for Guests</p>
+          <i class="fa-solid fa-door-open fa-2x opacity-50"></i>
+        </div>
       </div>
     </div>
 
-    <div class="col-md-3">
+    <!-- Active Bookings Card -->
+    <div class="col-12 col-md-6 col-xl-3">
       <div class="stat-card restaurant">
-        <h4>Bookings</h4>
-        <p class="stat-number"><%= bookingsCount %></p>
-        <p class="stat-label">Total Reservations</p>
+        <div>
+          <h4>Active Bookings</h4>
+          <p class="stat-number"><%= bookingsCount %></p>
+        </div>
+        <div class="d-flex justify-content-between align-items-end">
+          <p class="stat-label mb-0">Current Stays</p>
+          <i class="fa-solid fa-users fa-2x opacity-50"></i>
+        </div>
       </div>
     </div>
 
-    <div class="col-md-3">
+    <!-- Pending Orders Card -->
+    <div class="col-12 col-md-6 col-xl-3">
       <div class="stat-card pending-orders">
-        <h4>Pending Orders</h4>
-        <p class="stat-number"><%= pendingOrdersCount %></p>
-        <p class="stat-label">Awaiting Preparation</p>
+        <div>
+          <h4>Pending Orders</h4>
+          <p class="stat-number"><%= pendingOrdersCount %></p>
+        </div>
+        <div class="d-flex justify-content-between align-items-end">
+          <p class="stat-label mb-0">Kitchen Queue</p>
+          <i class="fa-solid fa-utensils fa-2x opacity-50"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions Section -->
+  <div class="row mt-5">
+    <div class="col-12">
+      <div class="card h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="mb-0">Quick Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-6 col-md-4">
+              <a href="/booking" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4 gap-3">
+                <i class="fa-solid fa-plus-circle fa-3x"></i>
+                <span class="fs-5">New Booking</span>
+              </a>
+            </div>
+            <div class="col-6 col-md-4">
+              <a href="/rooms" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4 gap-3">
+                <i class="fa-solid fa-door-closed fa-3x"></i>
+                <span class="fs-5">Manage Rooms</span>
+              </a>
+            </div>
+            <div class="col-6 col-md-4">
+              <a href="/order" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4 gap-3">
+                <i class="fa-solid fa-bell-concierge fa-3x"></i>
+                <span class="fs-5">New Order</span>
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

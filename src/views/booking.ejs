@@ -1,197 +1,302 @@
 <%- include("./layouts/header") %>
 <%- include("./layouts/sidebar") %>
 
-<div class="container booking-form">  
-  <div class="main-content">
-    <h2>📅 Manage Bookings</h2>
+<div class="booking-form dashboard-container">
+  <h2 class="mb-4">📅 Manage Bookings</h2>
 
-    <!-- Checkout Summary-->
-    <% if (typeof checkoutSummary !== 'undefined' && checkoutSummary && !from && !to) { %>
-      <% 
-        // Clear the checkout summary from session after displaying
-        if (locals.clearCheckoutSummary !== true) {
-      %>
-
-    <div class="checkout-summary" id="print-summary">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-        <h4 class="checkout-title" style="margin:0;">✓ Checkout Summary</h4>
-
-        <!-- ✅ Print Button - Desktop View -->
-        <button type="button" class="btn btn-primary checkout-pdf-btn-desktop" onclick="printCheckoutSummary(); clearCheckoutMessage();">
-          Generate PDF
-        </button>
-      </div>
-
-      <div class="checkout-grid">
-        <div>
-          <strong>Customer Name:</strong><br>
-          <%= checkoutSummary.customerName %>
-        </div>
-        <div>
-          <strong>Room Number:</strong><br>
-          Room <%= checkoutSummary.roomNumber %>
-        </div>
-        <div>
-          <strong>Room Charges:</strong><br>
-          <span class="price">₹<%= checkoutSummary.roomCharges %></span>
-        </div>
-        <div>
-          <strong>Food Charges:</strong><br>
-          <span class="price danger">₹<%= checkoutSummary.foodCharges %></span>
+  <!-- Checkout Summary-->
+  <% if (typeof checkoutSummary !== 'undefined' && checkoutSummary && !from && !to) { %>
+    <% if (locals.clearCheckoutSummary !== true) { %>
+    <div class="checkout-summary card bg-success-subtle border-success mb-4" id="print-summary">
+      <div class="card-body">
+        
+        <!-- Print Header (Visible only in print) -->
+        <div class="d-none d-print-block text-center mb-4">
+          <h2 class="mb-1"><%= (typeof user !== 'undefined' && user.hotelName) ? user.hotelName : 'HRMS Hotel' %></h2>
+          <p class="text-muted mb-0">Official Receipt</p>
+          <hr class="my-3">
         </div>
 
-        <% if (checkoutSummary.foodItems && checkoutSummary.foodItems.length > 0) { %>
-          <div style="grid-column: 1 / -1;">
-            <strong>Food Items Purchased:</strong><br>
-            <ul style="margin: 8px 0; padding-left: 20px;">
-              <% checkoutSummary.foodItems.forEach(item => { %>
-              <li><%= item.name %> - ₹<%= item.price %></li>
-              <% }) %>
-            </ul>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h4 class="checkout-title text-success m-0 d-print-none"><i class="fa-solid fa-check-circle me-2"></i> Checkout Summary</h4>
+            <div class="d-none d-print-block">
+                <strong>Invoice Date:</strong> <%= new Date().toLocaleDateString() %>
+            </div>
+            <small class="text-muted d-print-none">HRMS Hotel - Official Receipt</small>
           </div>
-        <% } %>
-
-        <div class="checkout-total">
-          <strong>Total Amount (Room + Food):</strong><br>
-          <span class="total-amount">₹<%= checkoutSummary.totalAmount %></span>
+          <button type="button" class="btn btn-outline-success btn-sm d-none d-md-inline-flex d-print-none" onclick="printCheckoutSummary(); clearCheckoutMessage();">
+            <i class="fa-solid fa-print me-1"></i> Print PDF
+          </button>
         </div>
-        <div class="checkout-meta">
-          <strong>Checkout Date & Time:</strong><br>
-          <%= checkoutSummary.checkOutDate %> at <%= checkoutSummary.checkOutTime %>
+
+        <!-- Invoice Details -->
+        <div class="row g-3 mb-4">
+          <div class="col-6">
+            <div class="p-3 bg-light rounded h-100 border">
+                <small class="text-muted text-uppercase d-block mb-1">Billed To</small>
+                <h5 class="mb-0"><%= checkoutSummary.customerName %></h5>
+                <span>Room <%= checkoutSummary.roomNumber %></span>
+            </div>
+          </div>
+          <div class="col-6">
+             <div class="p-3 bg-light rounded h-100 border text-end">
+                <small class="text-muted text-uppercase d-block mb-1">Stay Details</small>
+                <strong>Checkout:</strong> <%= checkoutSummary.checkOutDate %><br>
+                <strong>Time:</strong> <%= checkoutSummary.checkOutTime %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Line Items Table -->
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 60%">Description</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Room Charge -->
+                    <tr>
+                        <td>
+                            <strong>Room Charge</strong>
+                            <small class="d-block text-muted">Room No: <%= checkoutSummary.roomNumber %></small>
+                        </td>
+                        <td class="text-end fw-bold">₹<%= checkoutSummary.roomCharges %></td>
+                    </tr>
+                    
+                    <!-- Food Charges -->
+                    <% if (checkoutSummary.foodItems && checkoutSummary.foodItems.length > 0) { %>
+                         <tr>
+                            <td colspan="2" class="bg-light fw-bold py-2"><small>Food & Beverages</small></td>
+                         </tr>
+                         <% checkoutSummary.foodItems.forEach(item => { %>
+                            <tr>
+                                <td class="ps-4">
+                                    <%= item.name %>
+                                </td>
+                                <td class="text-end">₹<%= item.price %></td>
+                            </tr>
+                        <% }) %>
+                    <% } %>
+                    
+                    <!-- Food Total Row if items exist -->
+                     <% if (Number(checkoutSummary.foodCharges) > 0) { %>
+                        <tr class="table-light">
+                            <td class="text-end"><strong>Total Food Charges</strong></td>
+                            <td class="text-end fw-bold text-danger">₹<%= checkoutSummary.foodCharges %></td>
+                        </tr>
+                     <% } %>
+                </tbody>
+                <tfoot class="table-group-divider">
+                    <tr>
+                        <td class="text-end fs-5"><strong>Grand Total</strong></td>
+                        <td class="text-end fs-5 fw-bold text-success">₹<%= checkoutSummary.totalAmount %></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Print Footer -->
+        <div class="d-none d-print-block text-center mt-5">
+            <p class="mb-1">Thank you for staying with us!</p>
+            <small class="text-muted">Hope to see you again soon.</small>
+        </div>
+
+        <div class="d-grid gap-2 d-md-none mt-3 d-print-none">
+          <button type="button" class="btn btn-success" onclick="printCheckoutSummary(); clearCheckoutMessage();">
+            📄 Generate PDF
+          </button>
         </div>
       </div>
-
-      <!-- ✅ Print Button - Mobile View Only -->
-      <button type="button" class="btn btn-primary checkout-pdf-btn-mobile" onclick="printCheckoutSummary(); clearCheckoutMessage();">
-        📄 Generate PDF
-      </button>
     </div>
-      <% } %>
     <% } %>
+  <% } %>
 
-    <form method="POST" action="/booking/addBooking" enctype="multipart/form-data">
-      <h4>Add New Booking</h4>
-      <input class="form-control" name="customerName" placeholder="Customer Name" required>
-      <input type="tel" inputmode="numeric" pattern="[6-9]{1}[0-9]{9}" class="form-control" name="customerNumber" maxlength="10" placeholder="Customer Number (Phone)" required>
-      <label class="form-label">ID Proof Image (JPEG, PNG, GIF, WebP - Max 5MB):</label>
-      <input class="form-control" name="idProofImage" type="file" accept="image/*" required>
-        
-      <% if (typeof availableRooms !== 'undefined' && availableRooms && availableRooms.length > 0) { %>
-        <select class="form-control" name="room" required>
-          <option value="">-- Select Available Room --</option>
-          <% availableRooms.forEach(r => { %>
-            <option value="<%= r._id %>">
-              Room <%= r.roomNo %> - <%= r.type %> (₹<%= r.pricePerNight %>/night)
-            </option>
-          <% }) %>
-        </select>
-      <% } else { %>
-        <div class="alert">
-          ⚠️ No available rooms at the moment!
-        </div>
-        <input class="form-control" name="room" placeholder="Room ID" disabled>
-      <% } %>
-        
-      <div class="date-row" style="display: flex; gap: 15px;">
-        <div style="flex: 1;">
-          <label class="form-label">From Date:</label>
-          <input class="form-control" type="date" name="checkIn" required>
-        </div>
-        <div style="flex: 1;">
-          <label class="form-label">To Date:</label>
-          <input class="form-control" type="date" name="checkOut" required>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary" <% if (typeof availableRooms === 'undefined' || !availableRooms || availableRooms.length === 0) { %>disabled<% } %>>📅 Book Now</button>
-    </form>
-
-    <h4 style="margin:10px">Booking List</h4>
-    <% if (booking && booking.length > 0) { %>
-      <div class="booking-section">
-        <h5>Active Bookings:</h5>
-        <% const activeBookings = booking.filter(b => b.status !== 'checked-out'); %>
-        <% if (activeBookings.length > 0) { %>
-          <ul class="booking-list">
-            <% activeBookings.forEach(b => { %>
-              <li class="booking-list-item <%= b.status %>">
-                <div class="booking-row">
-                  <div class="booking-info">
-                    <strong class="booking-name"><%= b.customerName %></strong><br>
-                    <small class="text-muted">
-                      Room <%= b.room ? b.room.roomNo : 'N/A' %> 
-                      | Check-in: <%= b.actualCheckIn ? new Date(b.actualCheckIn).toLocaleString() : new Date(b.checkIn).toLocaleDateString() %>
-                      | Check-out: <%= new Date(b.checkOut).toLocaleDateString() %>
-                    </small>
-                    <br>
-                    <span class="booking-status <%= b.status %>">Status: <strong><%= b.status.toUpperCase() %></strong></span>
-                  </div>
-                  <div class="booking-actions">
-                    <span class="booking-amount">₹<%= b.totalAmount %></span>
-                    <% if (b.status === 'pending') { %>
-                      <form method="POST" action="/booking/<%= b._id %>/check-in" class="inline-action">
-                        <button type="submit" class="btn btn-primary">✓ Check-in</button>
-                      </form>
-                    <% } %>
-                    <% if (b.status === 'checked-in') { %>
-                      <form method="POST" action="/booking/<%= b._id %>/check-out" class="inline-action">
-                        <button type="submit" class="btn btn-warning">✗ Check-out</button>
-                      </form>
-                    <% } %>
-                  </div>
-                </div>
-              </li>
-            <% }) %>
-          </ul>
-        <% } else { %>
-          <p class="text-muted success">✓ No active bookings!</p>
-        <% } %>
-      </div>
-
-      <form method="GET" action="/booking" class="card p-2 mb-3" style="max-width:640px;">
-        <div style="display:flex;gap:12px;align-items:flex-start;">
-          <div style="flex:1;">
-            <label class="form-label">From</label>
-            <input class="form-control" type="date" name="from" value="<%= typeof from !== 'undefined' ? from : '' %>">
+  <!-- Booking Form -->
+  <div class="card mb-5">
+    <div class="card-header bg-white py-3">
+      <h5 class="mb-0"><i class="fa-solid fa-plus-circle me-2 text-primary"></i> Add New Booking</h5>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/booking/addBooking" enctype="multipart/form-data">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Customer Name</label>
+            <input class="form-control" name="customerName" placeholder="John Doe" required>
           </div>
-          <div style="flex:1;">
-            <label class="form-label">To</label>
-            <input class="form-control" type="date" name="to" value="<%= typeof to !== 'undefined' ? to : '' %>">
+          <div class="col-md-6">
+            <label class="form-label">Customer Mobile</label>
+            <input type="tel" inputmode="numeric" pattern="[6-9]{1}[0-9]{9}" class="form-control" name="customerNumber" maxlength="10" placeholder="10-digit number" required>
           </div>
-          <div style="display:flex;align-items:flex-end;margin-top:33px; margin-left:5px">
-            <button type="submit" class="btn btn-primary" style="height:38px; width:100px">Filter</button>
+          
+          <div class="col-12">
+            <label class="form-label">ID Proof Image <small class="text-muted">(Max 5MB)</small></label>
+            <input class="form-control" name="idProofImage" type="file" accept="image/*" required>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Select Room</label>
+            <% if (typeof availableRooms !== 'undefined' && availableRooms && availableRooms.length > 0) { %>
+              <select class="form-select" name="room" required>
+                <option value="">-- Select Available Room --</option>
+                <% availableRooms.forEach(r => { %>
+                  <option value="<%= r._id %>">
+                    Room <%= r.roomNo %> - <%= r.type %> (₹<%= r.pricePerNight %>/night)
+                  </option>
+                <% }) %>
+              </select>
+            <% } else { %>
+              <div class="alert alert-warning mb-0">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i> No available rooms!
+              </div>
+              <!-- Hidden input to prevent form submission without room if required logic is server-side -->
+            <% } %>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Check-in Date</label>
+            <input class="form-control" type="date" name="checkIn" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Check-out Date</label>
+            <input class="form-control" type="date" name="checkOut" required>
+          </div>
+
+          <div class="col-12 mt-4">
+            <button type="submit" class="btn btn-primary w-100 py-2" <% if (typeof availableRooms === 'undefined' || !availableRooms || availableRooms.length === 0) { %>disabled<% } %>>
+              <i class="fa-solid fa-calendar-plus me-2"></i> Book Now
+            </button>
           </div>
         </div>
       </form>
+    </div>
+  </div>
 
-      <div class="booking-section">
-        <h5>Checked-out Bookings (History):</h5>
-        <% if (checkedOutBookings && checkedOutBookings.length > 0) { %>
-          <ul class="booking-list">
-            <% checkedOutBookings.forEach(b => { %>
-              <li class="booking-list-item past checked-out">
-                <div>
-                  <strong class="past-name"><%= b.customerName %></strong><br>
+  <!-- Booking Lists -->
+  <div class="row">
+    <!-- Active Bookings -->
+    <div class="col-12 mb-4">
+      <h4 class="mb-3">Active Bookings</h4>
+      <% if (booking && booking.length > 0) { %>
+        <% const activeBookings = booking.filter(b => b.status !== 'checked-out'); %>
+        
+        <% if (activeBookings.length > 0) { %>
+          <div class="d-flex flex-column gap-3">
+            <% activeBookings.forEach(b => { %>
+              <div class="booking-list-item <%= b.status %> d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                <div class="d-flex flex-column">
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <strong class="fs-5"><%= b.customerName %></strong>
+                    <span class="badge bg-secondary">Room <%= b.room ? b.room.roomNo : 'N/A' %></span>
+                  </div>
                   <small class="text-muted">
-                    Room <%= b.room ? b.room.roomNo : 'N/A' %> 
-                    | Check-in: <%= b.actualCheckIn ? new Date(b.actualCheckIn).toLocaleString() : new Date(b.checkIn).toLocaleDateString() %>
-                    | Check-out: <%= b.actualCheckOut ? new Date(b.actualCheckOut).toLocaleString() : new Date(b.checkOut).toLocaleDateString() %>
+                    <i class="fa-regular fa-clock me-1"></i>
+                    <%= b.actualCheckIn ? new Date(b.actualCheckIn).toLocaleString() : new Date(b.checkIn).toLocaleDateString() %> 
+                    &rarr; 
+                    <%= new Date(b.checkOut).toLocaleDateString() %>
                   </small>
-                  <br>
-                  <% const roomCharge = b.totalAmount ? (b.foodCharges && b.foodCharges > 0 ? b.totalAmount - b.foodCharges : b.totalAmount) : 0; %>
-                  <% const foodCharge = b.foodCharges || 0; %>
-                  <% const totalAmount = (b.totalAmount || 0); %>
-                  <span class="past-meta">Status: <strong>CHECKED-OUT</strong> | <% if (foodCharge > 0) { %>Room: ₹<%= roomCharge %> | Food: ₹<%= foodCharge %> | <% } %>Total: ₹<%= totalAmount %></span>
+                  <div class="mt-2">
+                    <span class="badge bg-<%= b.status === 'checked-in' ? 'success' : 'warning' %> text-uppercase"><%= b.status %></span>
+                  </div>
                 </div>
-              </li>
+
+                <div class="d-flex flex-column align-items-end gap-2 w-100 w-md-auto">
+                  <span class="fs-4 fw-bold text-primary">₹<%= b.totalAmount %></span>
+                  <div class="d-flex gap-2 w-100 justify-content-end">
+                    <% if (b.status === 'pending') { %>
+                      <form method="POST" action="/booking/<%= b._id %>/check-in">
+                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                          <i class="fa-solid fa-check me-1"></i> Check-in
+                        </button>
+                      </form>
+                    <% } %>
+                    <% if (b.status === 'checked-in') { %>
+                      <form method="POST" action="/booking/<%= b._id %>/check-out">
+                        <button type="submit" class="btn btn-sm btn-warning text-white w-100">
+                          <i class="fa-solid fa-right-from-bracket me-1"></i> Check-out
+                        </button>
+                      </form>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
             <% }) %>
-          </ul>
+          </div>
         <% } else { %>
-          <p class="text-muted">No checked-out bookings found for the selected range.</p>
+          <div class="alert alert-info">
+            <i class="fa-solid fa-info-circle me-2"></i> No active bookings found.
+          </div>
         <% } %>
+      <% } else { %>
+        <div class="alert alert-info">
+          <i class="fa-solid fa-info-circle me-2"></i> No bookings yet. Add one to get started!
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Booking History -->
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h4 class="mb-0">Booking History</h4>
+        
+        <!-- Date Filter -->
+        <form method="GET" action="/booking" class="d-flex gap-2">
+            <input class="form-control form-control-sm" type="date" name="from" value="<%= typeof from !== 'undefined' ? from : '' %>" required>
+            <input class="form-control form-control-sm" type="date" name="to" value="<%= typeof to !== 'undefined' ? to : '' %>" required>
+            <button type="submit" class="btn btn-sm btn-outline-primary">Filter</button>
+            <% if (typeof from !== 'undefined' || typeof to !== 'undefined') { %>
+              <a href="/booking" class="btn btn-sm btn-outline-secondary">Clear</a>
+            <% } %>
+        </form>
       </div>
-    <% } else { %>
-      <p class="text-muted">No bookings yet. Add one to get started!</p>
-    <% } %>
+
+      <% if (checkedOutBookings && checkedOutBookings.length > 0) { %>
+        <div class="bg-white rounded shadow-sm border overflow-hidden">
+          <div class="table-responsive mb-0">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" class="ps-4">Customer</th>
+                  <th scope="col">Room</th>
+                  <th scope="col">Dates</th>
+                  <th scope="col">Payment Breakdown</th>
+                  <th scope="col" class="text-end pe-4">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% checkedOutBookings.forEach(b => { %>
+                  <tr>
+                    <td class="ps-4 fw-medium"><%= b.customerName %></td>
+                    <td><span class="badge bg-light text-dark border">Room <%= b.room ? b.room.roomNo : 'N/A' %></span></td>
+                    <td>
+                      <small class="d-block text-muted">In: <%= b.actualCheckIn ? new Date(b.actualCheckIn).toLocaleDateString() : new Date(b.checkIn).toLocaleDateString() %></small>
+                      <small class="d-block text-muted">Out: <%= b.actualCheckOut ? new Date(b.actualCheckOut).toLocaleDateString() : new Date(b.checkOut).toLocaleDateString() %></small>
+                    </td>
+                    <td>
+                      <% const roomCharge = b.totalAmount ? (b.foodCharges && b.foodCharges > 0 ? b.totalAmount - b.foodCharges : b.totalAmount) : 0; %>
+                      <% const foodCharge = b.foodCharges || 0; %>
+                      <small class="d-block text-success">Room: ₹<%= roomCharge %></small>
+                      <% if (foodCharge > 0) { %>
+                        <small class="d-block text-danger">Food: ₹<%= foodCharge %></small>
+                      <% } %>
+                    </td>
+                    <td class="text-end pe-4 fw-bold text-primary">₹<%= b.totalAmount || 0 %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="text-center py-5 text-muted bg-light rounded border border-dashed">
+          <i class="fa-solid fa-history fa-2x mb-3 opacity-25"></i>
+          <p class="mb-0">No history found for this period.</p>
+        </div>
+      <% } %>
+    </div>
   </div>
 </div>
 

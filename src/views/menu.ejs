@@ -1,43 +1,72 @@
 <%- include("./layouts/header") %> 
 <%- include("./layouts/sidebar") %>
 
-<div class="container-fluid">
-    <div class="main-content">
-      <h2>🍽️ Menu Management</h2>
+<div class="dashboard-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">🍽️ Menu Management</h2>
+      <p class="text-muted mb-0">Manage your restaurant menu items and prices.</p>
+    </div>
+  </div>
 
-      <% if (selectedMenuCategories && selectedMenuCategories.length > 0) { %>
-        <form method="POST" action="/menu/addMenu" class="card p-3 mb-4">
-          <h4>➕ Add Menu Item</h4>
-          <div class="form-group">
-            <input class="form-control" name="name" placeholder="Item Name" required>
-          </div>
-          <div class="form-group">
-            <input class="form-control" name="price" placeholder="Price" type="number" required>
-          </div>
-          <div class="form-group">
-            <select class="form-control" name="category" required>
-              <option value="">Select Category</option>
-              <% selectedMenuCategories.forEach(category => { %>
-                <option value="<%= category %>"><%= category %></option>
-              <% }) %>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-primary btn-action">➕ Add Item</button>
-        </form>
-      <% } else { %>
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-          <h5>⚠️ Configure Menu Categories First</h5>
-          <p>You need to select menu categories in Settings before you can add new menu items.</p>
-          <a href="/settings" class="btn btn-warning btn-sm">Go to Settings ⚙️</a>
+  <div class="row g-4">
+    <!-- Add Item Form -->
+    <div class="col-12 col-xl-4">
+      <div class="card sticky-top" style="top: 20px; z-index: 1;">
+        <div class="card-header bg-white py-3">
+          <h5 class="mb-0"><i class="fa-solid fa-plus-circle me-2 text-primary"></i> Add Menu Item</h5>
         </div>
-      <% } %>
+        <div class="card-body">
+          <% if (selectedMenuCategories && selectedMenuCategories.length > 0) { %>
+            <form method="POST" action="/menu/addMenu">
+              <div class="mb-3">
+                <label class="form-label">Item Name</label>
+                <input class="form-control" name="name" placeholder="e.g. Butter Chicken" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Category</label>
+                <select class="form-select" name="category" required>
+                  <option value="">Select Category</option>
+                  <% selectedMenuCategories.forEach(category => { %>
+                    <option value="<%= category %>"><%= category %></option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Price (₹)</label>
+                <div class="input-group">
+                  <span class="input-group-text">₹</span>
+                  <input class="form-control" name="price" placeholder="0.00" type="number" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="fa-solid fa-save me-2"></i> Save Item
+              </button>
+            </form>
+          <% } else { %>
+            <div class="alert alert-warning border-warning">
+              <div class="d-flex gap-2">
+                <i class="fa-solid fa-triangle-exclamation mt-1"></i>
+                <div>
+                  <strong>No Categories Configured</strong>
+                  <p class="mb-2 small">Go to Settings to define your menu categories before adding items.</p>
+                  <a href="/settings" class="btn btn-sm btn-outline-dark">Go to Settings &rarr;</a>
+                </div>
+              </div>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
 
-      <h4 class="mt-4">📋 Menu Items</h4>
-      <form method="GET" action="/menu" class="card p-3 mb-3">
-        <div class="row">
-          <div class="col-md-4">
-            <label class="form-label">Category</label>
-            <select name="category" class="form-control">
+    <!-- Menu List -->
+    <div class="col-12 col-xl-8">
+      <div class="card">
+        <div class="card-header bg-white py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+          <h5 class="mb-0"><i class="fa-solid fa-utensils me-2 text-primary"></i> Menu Items</h5>
+          
+          <form method="GET" action="/menu" class="d-flex gap-2 w-100 w-md-auto">
+            <select name="category" class="form-select form-select-sm" style="max-width: 200px;">
               <option value="">All Categories</option>
               <% if (selectedMenuCategories && selectedMenuCategories.length > 0) { %>
                 <% selectedMenuCategories.forEach(type => { %>
@@ -45,51 +74,60 @@
                 <% }) %>
               <% } %>
             </select>
-          </div>
-        <div class="d-flex gap-2 mt-2 mb-2">
-          <button type="submit" class="btn btn-primary">Search</button>
-          <a href="/menu" class="btn btn-secondary">Clear</a>
+            <button type="submit" class="btn btn-sm btn-outline-primary">Filter</button>
+            <% if (typeof category !== 'undefined' && category) { %>
+              <a href="/menu" class="btn btn-sm btn-outline-secondary">Clear</a>
+            <% } %>
+          </form>
         </div>
-      </form>
-      <% if (menu && menu.length > 0) { %>
-        <div class="table-responsive">
-          <table class="table table-striped table-hover">
-            <thead class="table-dark">
-              <tr>
-                <th data-label="Item Name">Item Name</th>
-                <th data-label="Category">Category</th>
-                <th data-label="Price">Price</th>
-                <th data-label="Actions">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% menu.forEach(i => { %>
-                <tr>
-                  <td data-label="Item Name"><strong><%= i.name %></strong></td>
-                  <td data-label="Category"><%= i.category %></td>
-                  <td data-label="Price">₹<%= i.price %></td>
-                  <td data-label="Actions">
-                    <div class="d-flex flex-column flex-md-row gap-2">
-                      <form method="POST" action="/menu/edit" class="d-inline">
-                        <input type="hidden" name="id" value="<%= i._id %>">
-                        <button type="submit" class="btn btn-sm btn-success w-100 w-md-auto">✏️ Edit</button>
-                      </form>
-                      <form method="POST" action="/menu/delete" class="d-inline" onsubmit="return confirm('Delete this menu item?');">
-                        <input type="hidden" name="id" value="<%= i._id %>">
-                        <button type="submit" class="btn btn-sm btn-danger w-100 w-md-auto">🗑️ Delete</button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
+
+        <div class="card-body p-0">
+          <% if (menu && menu.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="ps-4">Item Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th class="text-end pe-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% menu.forEach(i => { %>
+                    <tr>
+                      <td class="ps-4 fw-bold text-primary" data-label="Item Name"><%= i.name %></td>
+                      <td data-label="Category"><span class="badge bg-light text-dark border"><%= i.category %></span></td>
+                      <td data-label="Price" class="fw-medium">₹<%= i.price %></td>
+                      <td class="text-end pe-4" data-label="Actions">
+                        <div class="d-flex justify-content-end gap-2">
+                          <form method="POST" action="/menu/edit" class="d-inline">
+                            <input type="hidden" name="id" value="<%= i._id %>">
+                            <button type="submit" class="btn btn-sm btn-outline-primary" title="Edit">
+                              <i class="fa-solid fa-pen"></i>
+                            </button>
+                          </form>
+                          <form method="POST" action="/menu/delete" class="d-inline" data-confirm="Delete this menu item?">
+                            <input type="hidden" name="id" value="<%= i._id %>">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                              <i class="fa-solid fa-trash"></i>
+                            </button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="text-center py-5 text-muted">
+              <i class="fa-solid fa-utensils fa-3x mb-3 opacity-25"></i>
+              <p>No menu items found. Add some to get started.</p>
+            </div>
+          <% } %>
         </div>
-      <% } else { %>
-        <div class="alert alert-info">
-          <p class="mb-0">📭 No menu items yet. Add some to get started!</p>
-        </div>
-      <% } %>
+      </div>
     </div>
   </div>
 </div>
