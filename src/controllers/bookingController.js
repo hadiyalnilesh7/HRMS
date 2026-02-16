@@ -4,31 +4,55 @@ const Order = require("../models/Order");
 
 exports.listBooking = async (req, res) => {
   const ownerId = req.session && req.session.user ? req.session.user.id : null;
+  
   try {
-    const booking = await Booking.find({ owner: ownerId }).populate("room");
+    // Only fetch active bookings
+    const activeBookingsQuery = { 
+      owner: ownerId, 
+      status: { $ne: "checked-out" } 
+    };
+    // Fetch active bookings
+    const booking = await Booking.find(activeBookingsQuery).populate("room").sort({ checkIn: 1 });
+    // Fetch available rooms
     const availableRooms = await Room.find({ status: "available", owner: ownerId });
-    const activeBookings = booking.filter((b) => b.status !== "checked-out");
-    const bookingCount = activeBookings.length;
+    const bookingCount = booking.length;
+    // Handle checkout summary
     const checkoutSummary = req.session.checkoutSummary || null;
     delete req.session.checkoutSummary;
 
-    // date range filtering
+    // Date range filtering for checked-out bookings
     const from = (req.query.from || "").trim();
     const to = (req.query.to || "").trim();
 
-    let checkedOut = booking.filter((b) => b.status === "checked-out");
+    let checkedOut = [];
+    
     if (from && to) {
       const fromDate = new Date(from);
       const toDate = new Date(to);
-      toDate.setHours(23,59,59,999);
-      checkedOut = await Booking.find({ owner: ownerId, status: "checked-out", actualCheckOut: { $gte: fromDate, $lte: toDate } }).populate("room").sort({ actualCheckOut: -1 });
+      toDate.setHours(23, 59, 59, 999);
+      
+      // Fetch history with range filter
+      checkedOut = await Booking.find({ 
+        owner: ownerId, 
+        status: "checked-out", 
+        actualCheckOut: { $gte: fromDate, $lte: toDate } 
+      })
+      .populate("room")
+      .sort({ actualCheckOut: -1 });
+      
     } else {
-      // show all checked-out bookings, latest first
-      checkedOut = await Booking.find({ owner: ownerId, status: "checked-out" }).populate("room").sort({ actualCheckOut: -1 });
+      // show last 10 checked-out bookings
+      checkedOut = await Booking.find({ 
+        owner: ownerId, 
+        status: "checked-out" 
+      })
+      .populate("room")
+      .sort({ actualCheckOut: -1 })
+      .limit(10);
     }
 
     res.render("booking", {
-      booking: booking,
+      booking: booking, // This now contains only ACTIVE bookings + checked-in/pending
       availableRooms: availableRooms || [],
       currentPage: "booking",
       bookingCount,
@@ -38,15 +62,15 @@ exports.listBooking = async (req, res) => {
       from: from || undefined,
       to: to || undefined
     });
+    
   } catch (error) {
-    console.log("Error fetching booking", error);
-    const booking = await Booking.find({ owner: ownerId }).populate("room");
-
+    console.error("Error fetching booking:", error);
+    
     res.render("booking", {
-      booking,
+      booking: [],
       availableRooms: [],
       currentPage: "booking",
-      bookingCount: booking.length,
+      bookingCount: 0,
       checkoutSummary: null,
       user: req.session.user || null,
       checkedOutBookings: [],
@@ -119,76 +143,114 @@ exports.checkOutBooking = async (req, res) => {
 
   const room = await Room.findOneAndUpdate({ _id: roomId, owner: ownerId }, { status: "available" });
 
-  // Get all orders for this booking (by booking ID or room ID with delivered status)
-  const orders = await Order.find({
-    $or: [
-      { booking: bookingId, owner: ownerId },
-      { room: roomId, deliveryStatus: "delivered", owner: ownerId }
-    ]
-  });
-  const foodCharges = orders.reduce((sum, order) => sum + order.total, 0);
-  const totalWithFood = booking.totalAmount + foodCharges;
+    // Calculate actual check-in and check-out times
+    const actualCheckInTime = booking.actualCheckIn ? new Date(booking.actualCheckIn) : new Date(booking.checkIn);
+    const actualCheckOutTime = new Date();
 
-  // Calculate original room charges (total without food)
-  const originalRoomCharges = booking.totalAmount - (booking.foodCharges || 0);
+    // Calculate actual nights stay
+    const nightsStayed = Math.max(1, Math.ceil((actualCheckOutTime - actualCheckInTime) / (1000 * 60 * 60 * 24)));
+    const pricePerNight = room && room.pricePerNight ? room.pricePerNight : 0;
+
+    const actualRoomCharges = nightsStayed * pricePerNight;
+
+    const orders = await Order.find({
+      $or: [
+        { booking: bookingId, owner: ownerId },
+        { 
+          room: roomId, 
+          deliveryStatus: "delivered", 
+          owner: ownerId,
+          createdAt: { $gte: actualCheckInTime }
+        }
+      ]
+    });
+  const foodCharges = orders.reduce((sum, order) => sum + order.total, 0);
   
   // Update booking with food charges and total amount
   await Booking.findByIdAndUpdate(bookingId, { 
     foodCharges: foodCharges,
-    totalAmount: originalRoomCharges + foodCharges
+    totalAmount: actualRoomCharges + foodCharges
   });
 
-  // Build list of food items from all orders
-  const foodItems = [];
+  const foodItemsMap = new Map();
   orders.forEach(order => {
     if (order.items && Array.isArray(order.items)) {
       order.items.forEach(item => {
-        foodItems.push({
-          name: item.name,
-          price: item.price,
-          quantity: 1
-        });
+        const itemId = item._id ? item._id.toString() : item.name;
+        if (foodItemsMap.has(itemId)) {
+          const existing = foodItemsMap.get(itemId);
+          existing.quantity += 1;
+          existing.price += item.price; 
+        } else {
+          foodItemsMap.set(itemId, {
+            name: item.name,
+            price: item.price,
+            quantity: 1
+          });
+        }
       });
     }
   });
+  const foodItems = Array.from(foodItemsMap.values());
 
   // Store checkout summary in session (single-use)
-  const actualCheckOutTime = new Date();
   req.session.checkoutSummary = {
     customerName: booking.customerName,
     roomNumber: booking.room.roomNo,
-    roomCharges: originalRoomCharges,
+    roomCharges: actualRoomCharges,
     foodCharges: foodCharges,
     foodItems: foodItems,
-    totalAmount: originalRoomCharges + foodCharges,
+    totalAmount: actualRoomCharges + foodCharges,
+    checkInDate: actualCheckInTime.toLocaleDateString(),
+    checkInTime: actualCheckInTime.toLocaleTimeString(),
+    nightsStayed: nightsStayed,
     checkOutDate: actualCheckOutTime.toLocaleDateString(),
     checkOutTime: actualCheckOutTime.toLocaleTimeString()
   };
 
   // Fetch all bookings to pass to view
   try {
-    const allBookings = await Booking.find({ owner: ownerId }).populate("room");
+    // Optimized: Only fetch active bookings
+    const activeBookingsQuery = { 
+      owner: ownerId, 
+      status: { $ne: "checked-out" } 
+    };
+    const activeBookings = await Booking.find(activeBookingsQuery).populate("room").sort({ checkIn: 1 });
+    
+    // Fetch available rooms
     const availableRooms = await Room.find({ status: "available", owner: ownerId });
-    const activeBookings = allBookings.filter((b) => b.status !== "checked-out");
     const bookingCount = activeBookings.length;
 
-    // date range filtering for checked-out (history)
+    // Date range filtering for checked-out (history)
     const from = (req.query.from || "").trim();
     const to = (req.query.to || "").trim();
 
-    let checkedOut = allBookings.filter((b) => b.status === "checked-out");
+    let checkedOut = [];
     if (from && to) {
       const fromDate = new Date(from);
       const toDate = new Date(to);
-      toDate.setHours(23,59,59,999);
-      checkedOut = await Booking.find({ owner: ownerId, status: "checked-out", actualCheckOut: { $gte: fromDate, $lte: toDate } }).populate("room").sort({ actualCheckOut: -1 });
+      toDate.setHours(23, 59, 59, 999);
+      
+      checkedOut = await Booking.find({ 
+        owner: ownerId, 
+        status: "checked-out", 
+        actualCheckOut: { $gte: fromDate, $lte: toDate } 
+      })
+      .populate("room")
+      .sort({ actualCheckOut: -1 });
     } else {
-      // show all checked-out bookings, latest first
-      checkedOut = await Booking.find({ owner: ownerId, status: "checked-out" }).populate("room").sort({ actualCheckOut: -1 });
+      // Default: show last 10 checked-out bookings only
+      checkedOut = await Booking.find({ 
+        owner: ownerId, 
+        status: "checked-out" 
+      })
+      .populate("room")
+      .sort({ actualCheckOut: -1 })
+      .limit(10);
     }
 
     res.render("booking", {
-      booking: allBookings,
+      booking: activeBookings,
       availableRooms: availableRooms || [],
       currentPage: "booking",
       bookingCount,

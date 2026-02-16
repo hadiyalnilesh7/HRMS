@@ -42,8 +42,10 @@
           <div class="col-6">
              <div class="p-3 bg-light rounded h-100 border text-end">
                 <small class="text-muted text-uppercase d-block mb-1">Stay Details</small>
+                <strong>Check-in:</strong> <%= checkoutSummary.checkInDate %><br>
+                <strong>Check-in Time:</strong> <%= checkoutSummary.checkInTime %><br>
                 <strong>Checkout:</strong> <%= checkoutSummary.checkOutDate %><br>
-                <strong>Time:</strong> <%= checkoutSummary.checkOutTime %>
+                <strong>Checkout Time:</strong> <%= checkoutSummary.checkOutTime %>
             </div>
           </div>
         </div>
@@ -63,6 +65,9 @@
                         <td>
                             <strong>Room Charge</strong>
                             <small class="d-block text-muted">Room No: <%= checkoutSummary.roomNumber %></small>
+                            <% if (typeof checkoutSummary.nightsStayed !== 'undefined') { %>
+                              <small class="d-block text-muted"><%= checkoutSummary.nightsStayed %> night(s)</small>
+                            <% } %>
                         </td>
                         <td class="text-end fw-bold">₹<%= checkoutSummary.roomCharges %></td>
                     </tr>
@@ -75,7 +80,7 @@
                          <% checkoutSummary.foodItems.forEach(item => { %>
                             <tr>
                                 <td class="ps-4">
-                                    <%= item.name %>
+                                    <%= item.name %> <%= item.quantity > 1 ? `x ${item.quantity}` : '' %>
                                 </td>
                                 <td class="text-end">₹<%= item.price %></td>
                             </tr>
@@ -272,8 +277,8 @@
                     <td class="ps-4 fw-medium"><%= b.customerName %></td>
                     <td><span class="badge bg-light text-dark border">Room <%= b.room ? b.room.roomNo : 'N/A' %></span></td>
                     <td>
-                      <small class="d-block text-muted">In: <%= b.actualCheckIn ? new Date(b.actualCheckIn).toLocaleDateString() : new Date(b.checkIn).toLocaleDateString() %></small>
-                      <small class="d-block text-muted">Out: <%= b.actualCheckOut ? new Date(b.actualCheckOut).toLocaleDateString() : new Date(b.checkOut).toLocaleDateString() %></small>
+                        <small class="d-block text-muted">In: <%= b.actualCheckIn ? new Date(b.actualCheckIn).toLocaleString() : new Date(b.checkIn).toLocaleString() %></small>
+                        <small class="d-block text-muted">Out: <%= b.actualCheckOut ? new Date(b.actualCheckOut).toLocaleString() : new Date(b.checkOut).toLocaleString() %></small>
                     </td>
                     <td>
                       <% const roomCharge = b.totalAmount ? (b.foodCharges && b.foodCharges > 0 ? b.totalAmount - b.foodCharges : b.totalAmount) : 0; %>

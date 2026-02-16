@@ -7,7 +7,7 @@ module.exports = mongoose.model(
     customerNumber: String,
     customerImage: String,
     room: { type: mongoose.Schema.Types.ObjectId, ref: "Room" },
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     checkIn: Date,
     checkOut: Date,
     actualCheckIn: Date,
@@ -18,6 +18,7 @@ module.exports = mongoose.model(
       type: String,
       default: "pending",
       enum: ["pending", "checked-in", "checked-out"],
+      index: true
     },
   }),
 );

@@ -44,13 +44,22 @@
                 <div class="row g-3">
                   <% menu.forEach(item => { %>
                     <div class="col-12 col-md-6">
-                      <div class="menu-item-card" onclick="toggleSelection(this)">
-                        <input class="menu-checkbox form-check-input mt-0" type="checkbox" name="selectedItems" value="<%= item._id %>" id="item_<%= item._id %>" data-price="<%= item.price %>">
-                        <div class="menu-details ms-2">
-                          <label class="menu-name mb-0 cursor-pointer" for="item_<%= item._id %>">
-                            <%= item.name %>
-                          </label>
-                          <small class="menu-price">₹<%= item.price %></small>
+                      <div class="menu-item-card p-3 border rounded d-flex justify-content-between align-items-center bg-white shadow-sm h-100">
+                        <div class="menu-details">
+                          <h6 class="menu-name mb-1 fw-bold"><%= item.name %></h6>
+                          <div class="text-primary fw-bold">₹<%= item.price %></div>
+                        </div>
+                        
+                        <div class="quantity-controls d-flex align-items-center bg-light rounded-pill border px-2 py-1">
+                          <button type="button" class="btn btn-sm btn-link text-decoration-none text-danger p-0" 
+                                  onclick="updateQuantity('<%= item._id %>', -1)">
+                              <i class="fa-solid fa-minus"></i>
+                          </button>
+                          <span class="mx-3 fw-bold count-display" id="qty_<%= item._id %>" data-id="<%= item._id %>" data-price="<%= item.price %>">0</span>
+                          <button type="button" class="btn btn-sm btn-link text-decoration-none text-success p-0" 
+                                  onclick="updateQuantity('<%= item._id %>', 1)">
+                              <i class="fa-solid fa-plus"></i>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -97,9 +106,14 @@
                     <span class="fs-5 fw-bold text-primary">₹<%= o.total %></span>
                   </div>
                   
-                  <div class="bg-light p-2 rounded small mb-3 text-muted">
                     <% if (Array.isArray(o.items)) { %>
-                      <%= o.items.map(i => `${i.name} (₹${i.price})`).join(', ') %>
+                      <% 
+                        const counts = {};
+                        o.items.forEach(i => {
+                          counts[i.name] = (counts[i.name] || 0) + 1;
+                        });
+                      %>
+                      <%= Object.entries(counts).map(([name, count]) => `${name} ${count > 1 ? 'x' + count : ''}`).join(', ') %>
                     <% } else { %>
                       <%= o.items %>
                     <% } %>
@@ -144,7 +158,13 @@
                       <h6 class="mb-1 mt-1"><%= o.customerName %> <small class="text-muted fw-normal">(Room <%= o.room ? o.room.roomNo : 'N/A' %>)</small></h6>
                       <small class="text-muted">
                         <% if (Array.isArray(o.items)) { %>
-                            <%= o.items.map(i => i.name).join(', ') %>
+                          <% 
+                            const counts = {};
+                            o.items.forEach(i => {
+                              counts[i.name] = (counts[i.name] || 0) + 1;
+                            });
+                          %>
+                          <%= Object.entries(counts).map(([name, count]) => `${name} ${count > 1 ? 'x' + count : ''}`).join(', ') %>
                         <% } else { %>
                             <%= o.items %>
                         <% } %>
@@ -169,10 +189,8 @@
   const itemsInput = document.getElementById('itemsInput');
   const totalAmountSpan = document.getElementById('totalAmount');
   const form = document.getElementById('orderForm');
+  const submitBtn = form.querySelector('button[type="submit"]');
 
-  // Helper to get all checkboxes (they are dynamic)
-  // We attach event listener to document to handle clicks but updateOrder iterates them
-  
   // Auto-fill customer name when room is selected
   roomSelect.addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
@@ -180,67 +198,68 @@
     customerNameInput.value = customerName || '';
   });
 
-  // Calculate Total & Update Selection Styles
-  function updateOrder() {
-    const checkboxes = document.querySelectorAll('.menu-checkbox');
-    const selectedCheckboxes = Array.from(checkboxes).filter(cb => cb.checked);
-    const selectedIds = selectedCheckboxes.map(cb => cb.value);
-    itemsInput.value = selectedIds.join(',');
+  // Store current quantities
+  const quantities = {};
 
-    const total = selectedCheckboxes.reduce((sum, cb) => {
-      return sum + parseFloat(cb.getAttribute('data-price') || 0);
-    }, 0);
+  // Update Quantity Function
+  window.updateQuantity = function(itemId, change) {
+    if (!quantities[itemId]) quantities[itemId] = 0;
+    
+    const newQty = quantities[itemId] + change;
+    if (newQty >= 0) {
+      quantities[itemId] = newQty;
+      // Update Display
+      const span = document.getElementById(`qty_${itemId}`);
+      if (span) {
+        span.textContent = newQty;
+        // Visual feedback
+        const card = span.closest('.menu-item-card');
+        if (newQty > 0) {
+          card.classList.add('border-primary', 'bg-primary-subtle');
+          card.classList.remove('bg-white');
+        } else {
+          card.classList.remove('border-primary', 'bg-primary-subtle');
+          card.classList.add('bg-white');
+        }
+      }
+      recalculateTotal();
+    }
+  };
 
-    totalAmountSpan.textContent = total;
-
-    // Update styling manually for browsers that don't support :has or just for robustness
-    checkboxes.forEach(cb => {
-      const card = cb.closest('.menu-item-card');
-      if (cb.checked) {
-        card.classList.add('selected');
-      } else {
-        card.classList.remove('selected');
+  // Recalculate Total and update hidden input
+  function recalculateTotal() {
+    let total = 0;
+    const allItemIds = [];
+    
+    // Iterate over displayed quantity spans to get prices
+    document.querySelectorAll('.count-display').forEach(span => {
+      const id = span.getAttribute('data-id');
+      const price = parseFloat(span.getAttribute('data-price') || 0);
+      const qty = quantities[id] || 0;
+      
+      if (qty > 0) {
+        total += price * qty;
+        // Add ID to list 'qty' times
+        for (let i = 0; i < qty; i++) {
+          allItemIds.push(id);
+        }
       }
     });
-  }
-  
-  // Toggle selection when clicking the card (if not clicking checkbox directly)
-  function toggleSelection(card) {
-    // If the click target appears to be the checkbox or label, let default event bubble
-    // But since we have onclick on parent, we need to be careful not to double toggle
-    // However, clicking checkbox triggers change event. Clicking card should trigger click on checkbox.
-    
-    // Actually, simpler approach:
-    // The Input is inside the card. If I click the card (but NOT the input), toggle input.
-    const checkbox = card.querySelector('input[type="checkbox"]');
-    
-    // We rely on event bubbling for the checkbox change to call updateOrder
-    // But we need to handle the "click background" logic
-    // The simplest way is to let the label handle the click for the text. 
-    // And for the padding area, we can manually check.
-  }
 
-  // Attach change listener to all checkboxes
-  document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('menu-checkbox')) {
-      updateOrder();
-    }
-  });
-
-  // Since we removed individual listeners in favor of delegation or re-querying:
-  // Initial update
-  updateOrder();
+    totalAmountSpan.textContent = total;
+    itemsInput.value = allItemIds.join(',');
+  }
 
   // Form Validation
   form.addEventListener('submit', function(e) {
     if (!roomSelect.value) {
       e.preventDefault();
-      showCustomAlert('Please select a room', 'Validation Error');
+      alert('Please select a room');
       return false;
     }
     if (!itemsInput.value) {
       e.preventDefault();
-      showCustomAlert('Please select at least one menu item', 'Validation Error');
+      alert('Please select at least one menu item');
       return false;
     }
   });

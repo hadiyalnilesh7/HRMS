@@ -54,9 +54,11 @@ app.use("/settings", require("./src/routes/settingsRoutes"));
 app.get("/dashboard", async (req, res) => {
   const ownerId = req.session && req.session.user ? req.session.user.id : null;
 
-  const allBookings = await Booking.find({ owner: ownerId });
-  const activeBookings = allBookings.filter((b) => b.status !== "checked-out");
-  const bookingsCount = activeBookings.length;
+  // Optimized: Count active bookings directly in DB
+  const bookingsCount = await Booking.countDocuments({ 
+    owner: ownerId, 
+    status: { $ne: "checked-out" } 
+  });
   const pendingOrdersCount = await Order.countDocuments({
     deliveryStatus: "pending",
     owner: ownerId,
