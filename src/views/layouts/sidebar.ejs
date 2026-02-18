@@ -1,41 +1,60 @@
-<div class="d-flex">
+  <!-- Mobile Header (Visible on small screens) -->
   <div class="mobile-header d-md-none">
-    <button id="sidebar-toggle" class="sidebar-toggle btn btn-dark">
+    <button id="sidebar-toggle" class="btn btn-dark sidebar-toggle">
       <i class="fa-solid fa-bars"></i>
     </button>
-    <div class="mobile-header-title">
-      <i class="fa-solid fa-hotel"></i>
-      <span><%= (user && user.hotelName) ? user.hotelName : 'Guest' %></span>
+    <div class="d-flex align-items-center gap-2">
+      <i class="fa-solid fa-hotel text-primary"></i>
+      <span class="fw-bold"><%= (user && user.hotelName) ? user.hotelName : 'Guest' %></span>
     </div>
   </div>
 
-  <aside class="sidebar bg-dark text-white">
-    <div class="sidebar-brand p-3">
-      <div class="sidebar-brand-row">
-        <h4 class="mb-0"><i class="fa-solid fa-hotel"></i> <%= (user && user.hotelName) ? user.hotelName : 'Guest' %></h4>
-        <div class="sidebar-header d-md-none">
-          <button id="sidebar-toggle-close" class="btn-close btn-close-white" aria-label="Close"></button>
-        </div>
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h4><i class="fa-solid fa-hotel"></i> <%= (user && user.hotelName) ? user.hotelName : 'HRMS' %></h4>
+      <div class="d-md-none ms-auto">
+        <button id="sidebar-toggle-close" class="btn-close btn-close-white" aria-label="Close"></button>
       </div>
     </div>
 
-    <div class="sidebar-user p-3">
-      <div class="sidebar-avatar"> <%= (user && user.name) ? user.name.charAt(0).toUpperCase() : 'A' %> </div>
-      <div class="sidebar-username"> <%= (user && user.name) ? user.name : 'Guest' %> </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">
+        <%= (user && user.name) ? user.name.charAt(0).toUpperCase() : 'U' %>
+      </div>
+      <div class="d-flex flex-column">
+        <span class="sidebar-username"><%= (user && user.name) ? user.name : 'Guest User' %></span>
+        <small class="text-muted" style="font-size: 0.75rem;">Admin</small>
+      </div>
     </div>
 
-    <nav class="sidebar-nav p-2">
-      <a href="/dashboard" class="nav-link"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-      <a href="/rooms" class="nav-link"><i class="fa-solid fa-door-open"></i> Rooms</a>
-      <a href="/booking" class="nav-link"><i class="fa-solid fa-calendar-check"></i> Bookings</a>
-      <a href="/menu" class="nav-link"><i class="fa-solid fa-utensils"></i> Menu</a>
-      <a href="/order" class="nav-link"><i class="fa-solid fa-shopping-bag"></i> Orders</a>
-      <a href="/settings" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
+    <nav class="sidebar-nav">
+      <a href="/dashboard" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'dashboard') ? 'active' : '' %>">
+        <i class="fa-solid fa-chart-line"></i> <span>Dashboard</span>
+      </a>
+      <a href="/rooms" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'rooms') ? 'active' : '' %>">
+        <i class="fa-solid fa-door-open"></i> <span>Rooms</span>
+      </a>
+      <a href="/booking" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'booking') ? 'active' : '' %>">
+        <i class="fa-solid fa-calendar-check"></i> <span>Bookings</span>
+      </a>
+      <a href="/menu" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'menu') ? 'active' : '' %>">
+        <i class="fa-solid fa-utensils"></i> <span>Menu</span>
+      </a>
+      <a href="/order" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'order') ? 'active' : '' %>">
+        <i class="fa-solid fa-shopping-bag"></i> <span>Orders</span>
+      </a>
+      <a href="/settings" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'settings') ? 'active' : '' %>">
+        <i class="fa-solid fa-gear"></i> <span>Settings</span>
+      </a>
     </nav>
 
-    <div class="sidebar-footer p-3">
-      <a href="/logout" class="nav-link" onclick="return confirm('Are you sure you want to logout?')"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+    <div class="sidebar-footer">
+      <a href="/logout" class="nav-link text-danger" data-confirm="Are you sure you want to logout?">
+        <i class="fa-solid fa-sign-out-alt"></i> <span>Logout</span>
+      </a>
     </div>
   </aside>
 
-<div class="p-4 flex-grow-1">
+  <!-- Content Wrapper -->
+  <div class="main-content">

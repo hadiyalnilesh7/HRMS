@@ -56,7 +56,8 @@ exports.login = async (req, res) => {
     hotelName: user.hotelName,
     selectedRoomTypes: user.selectedRoomTypes || [],
     selectedMenuCategories: user.selectedMenuCategories || [],
-  };  res.redirect("/dashboard");
+  };  
+  res.redirect("/dashboard");
 };
 
 exports.logout = async (req, res) => {

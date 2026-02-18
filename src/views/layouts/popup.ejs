@@ -1,0 +1,128 @@
+<!-- Custom Popup Modal (Hidden by default) -->
+<div id="custom-popup-overlay" class="custom-popup-overlay">
+  <div class="custom-popup">
+    <div class="custom-popup-icon" id="popup-icon">
+      <!-- Icons will be injected here (check/exclamation/info) -->
+    </div>
+    <h3 class="custom-popup-title" id="popup-title">Notification</h3>
+    <p class="custom-popup-message" id="popup-message">Message goes here...</p>
+    <div class="custom-popup-actions" id="popup-actions">
+      <!-- Buttons will be injected here -->
+      <button class="btn btn-secondary" id="popup-cancel">Cancel</button>
+      <button class="btn btn-primary" id="popup-confirm">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Global Popup System
+  const Popup = {
+    overlay: document.getElementById('custom-popup-overlay'),
+    title: document.getElementById('popup-title'),
+    message: document.getElementById('popup-message'),
+    icon: document.getElementById('popup-icon'),
+    actions: document.getElementById('popup-actions'),
+    cancelBtn: document.getElementById('popup-cancel'),
+    confirmBtn: document.getElementById('popup-confirm'),
+    
+    // State to hold the current callback
+    onConfirm: null,
+
+    show: function(type, msg, titleText, callback = null) {
+      this.message.textContent = msg;
+      this.title.textContent = titleText;
+      this.onConfirm = callback;
+      
+      // Reset classes
+      this.overlay.classList.add('active');
+      this.icon.innerHTML = '';
+      this.actions.innerHTML = ''; // Clear buttons to rebuild based on type
+
+      if (type === 'alert') {
+        this.icon.innerHTML = '<i class="fa-solid fa-circle-exclamation text-warning" style="font-size: 3rem;"></i>';
+        
+        // Single OK Button for Alert
+        const okBtn = document.createElement('button');
+        okBtn.className = 'btn btn-primary px-4';
+        okBtn.textContent = 'OK';
+        okBtn.onclick = () => this.hide();
+        this.actions.appendChild(okBtn);
+
+      } else if (type === 'confirm') {
+        this.icon.innerHTML = '<i class="fa-solid fa-circle-question text-primary" style="font-size: 3rem;"></i>';
+        
+        // Cancel Button
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn btn-outline-secondary px-3';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.onclick = () => this.hide();
+        
+        // Confirm Button
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'btn btn-danger px-4';
+        confirmBtn.textContent = 'Yes, Proceed';
+        confirmBtn.onclick = () => {
+          const callback = this.onConfirm; // Capture callback before it's cleared by hide()
+          this.hide();
+          if (callback) callback();
+        };
+
+        this.actions.appendChild(cancelBtn);
+        this.actions.appendChild(confirmBtn);
+      }
+    },
+
+    hide: function() {
+      this.overlay.classList.remove('active');
+      this.onConfirm = null;
+    }
+  };
+
+  // Global Helper Functions
+  window.showCustomAlert = (message, title = 'Alert') => {
+    Popup.show('alert', message, title);
+  };
+
+  window.showCustomConfirm = (message, title = 'Confirm Action', callback) => {
+    Popup.show('confirm', message, title, callback);
+  };
+
+  // Global Event Listener for data-confirm attributes when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    
+    // Handle Links and Submit Buttons with data-confirm
+    document.body.addEventListener('click', function(e) {
+      const target = e.target.closest('[data-confirm]');
+      
+      if (target) {
+        // If it's a link or a button that submits a form transparently handled via click
+        // But for forms, we usually intercept the 'submit' event.
+        // Let's handle links specifically here.
+        if (target.tagName === 'A') {
+          e.preventDefault();
+          const message = target.getAttribute('data-confirm');
+          const href = target.getAttribute('href');
+          
+          showCustomConfirm(message, 'Confirmation Needed', () => {
+            window.location.href = href;
+          });
+        }
+      }
+    });
+
+    // Handle Forms with data-confirm
+    document.body.addEventListener('submit', function(e) {
+      const form = e.target;
+      if (form.hasAttribute('data-confirm')) {
+        e.preventDefault();
+        const message = form.getAttribute('data-confirm');
+        
+        showCustomConfirm(message, 'Are you sure?', () => {
+          // Temporarily remove attribute to prevent recursion/loop and submit
+          form.removeAttribute('data-confirm');
+          form.submit();
+        });
+      }
+    });
+  });
+</script>

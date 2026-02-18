@@ -1,73 +1,99 @@
 <%- include("./layouts/header") %>
 <%- include("./layouts/sidebar") %>
 
-<div class="container-fluid">
-  <div class="main-content">
-    <h2>⚙️ Settings</h2>
+<div class="dashboard-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">⚙️ Settings</h2>
+      <p class="text-muted mb-0">Configure your hotel and restaurant preferences.</p>
+    </div>
+  </div>
 
-    <div class="settings-container" style="max-width: 700px; margin: 0 auto;">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
       <form method="POST" action="/settings/save">
-        <div class="card mb-3">
-          <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">🏢 Room Types</h5>
+        
+        <!-- Room Types Card -->
+        <div class="card mb-4">
+          <div class="card-header bg-white py-3">
+            <h5 class="mb-0"><i class="fa-solid fa-bed me-2 text-primary"></i> Room Types</h5>
           </div>
           <div class="card-body">
-            <p class="text-muted">Select the room types you want to display when creating new rooms:</p>
-            <div id="roomTypesContainer">
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="roomTypes" value="AC" id="roomTypeAC">
-                <label class="form-check-label" for="roomTypeAC">AC</label>
+            <p class="text-muted mb-3">Select the room types available in your hotel for booking creation:</p>
+            <div class="row g-3" id="roomTypesContainer">
+              <div class="col-6 col-md-4">
+                <div class="settings-checkbox-card" onclick="toggleSettingsCheckbox(this)">
+                  <input type="checkbox" class="form-check-input mt-0" name="roomTypes" value="AC" id="roomTypeAC">
+                  <label class="fw-medium" for="roomTypeAC">AC</label>
+                </div>
               </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="roomTypes" value="Non-AC" id="roomTypeNonAC">
-                <label class="form-check-label" for="roomTypeNonAC">Non-AC</label>
+              <div class="col-6 col-md-4">
+                <div class="settings-checkbox-card" onclick="toggleSettingsCheckbox(this)">
+                  <input type="checkbox" class="form-check-input mt-0" name="roomTypes" value="Non-AC" id="roomTypeNonAC">
+                  <label class="fw-medium" for="roomTypeNonAC">Non-AC</label>
+                </div>
               </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="roomTypes" value="Deluxe" id="roomTypeDeluxe">
-                <label class="form-check-label" for="roomTypeDeluxe">Deluxe</label>
+              <div class="col-6 col-md-4">
+                <div class="settings-checkbox-card" onclick="toggleSettingsCheckbox(this)">
+                  <input type="checkbox" class="form-check-input mt-0" name="roomTypes" value="Deluxe" id="roomTypeDeluxe">
+                  <label class="fw-medium" for="roomTypeDeluxe">Deluxe</label>
+                </div>
               </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="roomTypes" value="Suite" id="roomTypeSuite">
-                <label class="form-check-label" for="roomTypeSuite">Suite</label>
+              <div class="col-6 col-md-4">
+                <div class="settings-checkbox-card" onclick="toggleSettingsCheckbox(this)">
+                  <input type="checkbox" class="form-check-input mt-0" name="roomTypes" value="Suite" id="roomTypeSuite">
+                  <label class="fw-medium" for="roomTypeSuite">Suite</label>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="card mb-3">
-          <div class="card-header bg-success text-white">
-            <h5 class="mb-0">🍽️ Menu Categories</h5>
+        <!-- Menu Categories Card -->
+        <div class="card mb-4">
+          <div class="card-header bg-white py-3">
+             <h5 class="mb-0"><i class="fa-solid fa-utensils me-2 text-success"></i> Menu Categories</h5>
           </div>
           <div class="card-body">
-            <p class="text-muted">Select the menu categories you want to display when creating new menu items:</p>
-            <div id="menuCategoriesContainer">
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="menuCategories" value="Appetizer" id="menuCatAppetizer">
-                <label class="form-check-label" for="menuCatAppetizer">Appetizer</label>
+            <p class="text-muted mb-3">Select the food categories available in your restaurant menu:</p>
+            <div class="row g-3" id="menuCategoriesContainer">
+              <div class="col-6 col-md-4">
+                <div class="settings-checkbox-card" onclick="toggleSettingsCheckbox(this)">
+                  <input type="checkbox" class="form-check-input mt-0" name="menuCategories" value="Appetizer" id="menuCatAppetizer">
+                  <label class="fw-medium" for="menuCatAppetizer">Appetizer</label>
+                </div>
               </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="menuCategories" value="Main" id="menuCatMain">
-                <label class="form-check-label" for="menuCatMain">Main</label>
+              <div class="col-6 col-md-4">
+                <div class="settings-checkbox-card" onclick="toggleSettingsCheckbox(this)">
+                  <input type="checkbox" class="form-check-input mt-0" name="menuCategories" value="Main" id="menuCatMain">
+                  <label class="fw-medium" for="menuCatMain">Main Course</label>
+                </div>
               </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="menuCategories" value="Dessert" id="menuCatDessert">
-                <label class="form-check-label" for="menuCatDessert">Dessert</label>
+              <div class="col-6 col-md-4">
+                <div class="settings-checkbox-card" onclick="toggleSettingsCheckbox(this)">
+                  <input type="checkbox" class="form-check-input mt-0" name="menuCategories" value="Dessert" id="menuCatDessert">
+                  <label class="fw-medium" for="menuCatDessert">Dessert</label>
+                </div>
               </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="menuCategories" value="Beverage" id="menuCatBeverage">
-                <label class="form-check-label" for="menuCatBeverage">Beverage</label>
+              <div class="col-6 col-md-4">
+                <div class="settings-checkbox-card" onclick="toggleSettingsCheckbox(this)">
+                  <input type="checkbox" class="form-check-input mt-0" name="menuCategories" value="Beverage" id="menuCatBeverage">
+                  <label class="fw-medium" for="menuCatBeverage">Beverage</label>
+                </div>
               </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="menuCategories" value="FastFood" id="menuCatFastFood">
-                <label class="form-check-label" for="menuCatFastFood">Fast Food</label>
+              <div class="col-6 col-md-4">
+                <div class="settings-checkbox-card" onclick="toggleSettingsCheckbox(this)">
+                  <input type="checkbox" class="form-check-input mt-0" name="menuCategories" value="FastFood" id="menuCatFastFood">
+                  <label class="fw-medium" for="menuCatFastFood">Fast Food</label>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="d-grid gap-2 d-md-flex">
-          <button type="submit" class="btn btn-primary">💾 Save Settings</button>
-          <a href="/dashboard" class="btn btn-secondary">« Back to Dashboard</a>
+        <div class="d-flex justify-content-end gap-3">
+          <a href="/dashboard" class="btn btn-outline-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-save me-2"></i> Save Changes</button>
         </div>
       </form>
     </div>
@@ -75,29 +101,68 @@
 </div>
 
 <script>
+  function toggleSettingsCheckbox(card) {
+    const checkbox = card.querySelector('input[type="checkbox"]');
+    // We let the default click behavior handle the checkbox state change 
+    // if the click was on the input or label. However, since we wrapped 
+    // it in an onclick, we should update the visual state.
+    
+    // We update the class after a small delay to let the change event propagate
+    setTimeout(() => {
+      if (checkbox.checked) {
+        card.classList.add('checked');
+      } else {
+        card.classList.remove('checked');
+      }
+    }, 0);
+  }
+
+  // Handle direct clicks on inputs (bubbling)
+  document.addEventListener('change', function(e) {
+    if (e.target.matches('.settings-checkbox-card input')) {
+      const card = e.target.closest('.settings-checkbox-card');
+      if (e.target.checked) card.classList.add('checked');
+      else card.classList.remove('checked');
+    }
+  });
+
   document.addEventListener('DOMContentLoaded', function() {
     // Load current settings
     fetch('/settings/get')
       .then(response => response.json())
       .then(data => {
-        // Check the selected room types
-        if (data.selectedRoomTypes && data.selectedRoomTypes.length > 0) {
-          data.selectedRoomTypes.forEach(type => {
-            const checkbox = document.querySelector(`input[name="roomTypes"][value="${type}"]`);
-            if (checkbox) checkbox.checked = true;
-          });
-        }
-        
-        // Check the selected menu categories
-        if (data.selectedMenuCategories && data.selectedMenuCategories.length > 0) {
-          data.selectedMenuCategories.forEach(category => {
-            const checkbox = document.querySelector(`input[name="menuCategories"][value="${category}"]`);
-            if (checkbox) checkbox.checked = true;
-          });
-        }
+        // Safe Helper
+        const safeArray = (val) => {
+           if (Array.isArray(val)) return val;
+           if (typeof val === 'string') return [val];
+           return [];
+        };
+
+        const roomTypes = safeArray(data.selectedRoomTypes);
+        const menuCategories = safeArray(data.selectedMenuCategories);
+
+        roomTypes.forEach(type => {
+          const checkbox = document.querySelector(`input[name="roomTypes"][value="${type}"]`);
+          if (checkbox) {
+            checkbox.checked = true;
+            checkbox.closest('.settings-checkbox-card').classList.add('checked');
+          }
+        });
+
+        menuCategories.forEach(category => {
+          const checkbox = document.querySelector(`input[name="menuCategories"][value="${category}"]`);
+          if (checkbox) {
+            checkbox.checked = true;
+            checkbox.closest('.settings-checkbox-card').classList.add('checked');
+          }
+        });
       })
       .catch(err => console.log('Error loading settings:', err));
   });
 </script>
+
+<style>
+.cursor-pointer { cursor: pointer; }
+</style>
 
 <%- include("./layouts/footer") %>

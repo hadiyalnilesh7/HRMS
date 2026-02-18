@@ -62,20 +62,41 @@ exports.addOrder = async (req, res) => {
 
   // Get menu items from database
   const ownerId = req.session && req.session.user ? req.session.user.id : null;
-  const menuItems = await Menu.find({ _id: { $in: itemIds }, owner: ownerId });
+  const uniqueItems = await Menu.find({ _id: { $in: itemIds }, owner: ownerId });
 
-  if (itemIds.length === 0) {
+  // Map unique items for quick lookup
+  const itemMap = new Map();
+  uniqueItems.forEach(item => itemMap.set(item._id.toString(), item));
+
+  // Reconstruct full list of items (including duplicates for quantity)
+  const finalItems = [];
+  let total = 0;
+
+  itemIds.forEach(id => {
+    const item = itemMap.get(id);
+    if (item) {
+      finalItems.push(item);
+      total += item.price;
+    }
+  });
+
+  if (finalItems.length === 0) {
     return res.redirect("/order");
   }
 
-  // Calculate total amount from menu item prices
-  const total = menuItems.reduce((sum, item) => sum + item.price, 0);
+  // Find active booking for this room to link the order
+  const activeBooking = room ? await Booking.findOne({ 
+    room: room, 
+    status: { $ne: "checked-out" }, 
+    owner: ownerId 
+  }) : null;
 
   await Order.create({
-    items: menuItems,
+    items: finalItems,
     total,
     room: room || null,
-    customerName: customerName || "Guest",
+    booking: activeBooking ? activeBooking._id : null,
+    customerName: customerName || (activeBooking ? activeBooking.customerName : "Guest"),
     deliveryStatus: "pending",
     owner: ownerId,
   });
