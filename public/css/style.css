@@ -776,22 +776,35 @@ a:hover {
   flex-direction: column;
 }
 
-.home-page header {
+.home-page .home-header {
   position: absolute;
   top: 0;
   width: 100%;
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 2rem;
   z-index: 10;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
 }
 
-.home-page .navbar {
-  font-weight: 800;
-  font-size: 1.5rem;
+.home-page .home-brand {
+  display: inline-flex;
+  align-items: center;
   color: var(--primary-color);
-  letter-spacing: -0.5px;
+}
+
+.home-page .home-brand-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.home-page .home-brand-text {
+  font-weight: 800;
+  font-size: 2rem;
+  color: var(--primary-color);
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 .session {
@@ -1184,6 +1197,19 @@ footer {
 
   .stat-card {
     margin-bottom: 1rem;
+  }
+
+  .home-page .home-header {
+    padding: 1rem 1rem;
+  }
+
+  .home-page .home-brand-logo {
+    width: 44px;
+    height: 44px;
+  }
+
+  .home-page .home-brand-text {
+    font-size: 1.5rem;
   }
 }
 

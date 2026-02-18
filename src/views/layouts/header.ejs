@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HRMS - Premium Hotel Management</title>
+  <link rel="icon" type="image/png" href="/image/logo.png">
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,3 +20,11 @@
 </head>
 <body>
   <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <script>
+      document.addEventListener("keydown", function(e) {
+      if (e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's')) {
+        e.preventDefault();
+        alert("Action disabled!");
+        }
+      });
+    </script>
