@@ -914,18 +914,36 @@ a:hover {
   color: white;
   padding: 4rem 1rem;
   margin: 10px;
-  margin-top: -10px;;
+  margin-top: -10px;
   border-radius: 15px;
+  overflow: hidden;
+  position: relative;
 }
-.stats:hover{
-  transform: translateY(-5px);
+.stats-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
 }
-.stats-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
+.stats-track {
+  display: inline-flex;
+  gap: 3rem;
+  animation: scrollLeft 25s linear infinite;
+  will-change: transform;
+}
+@keyframes scrollLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+.stat {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 200px;
   text-align: center;
 }
 .stat-number {
