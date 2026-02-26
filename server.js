@@ -6,6 +6,7 @@ require("dotenv").config();
 
 const connectDB = require("./src/config/db");
 const upload = require("./src/config/multerConfig");
+const adminAuth = require("./src/middlewares/middleware");
 const Booking = require("./src/models/Booking");
 const Order = require("./src/models/Order");
 const Room = require("./src/models/Room");
@@ -51,7 +52,7 @@ app.use("/menu", require("./src/routes/menuRoutes"));
 app.use("/order", require("./src/routes/orderRoutes"));
 app.use("/settings", require("./src/routes/settingsRoutes"));
 
-app.get("/dashboard", async (req, res) => {
+app.get("/dashboard", adminAuth, async (req, res) => {
   const ownerId = req.session && req.session.user ? req.session.user.id : null;
 
   // Optimized: Count active bookings directly in DB
