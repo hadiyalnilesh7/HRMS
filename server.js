@@ -65,6 +65,9 @@ app.get("/dashboard", async (req, res) => {
   });
   const roomsCount = await Room.countDocuments({ owner: ownerId });
   const availableRooms = await Room.countDocuments({ owner: ownerId, status: "available" });
+  
+  // Fetch rooms that need cleaning
+  const roomsNeedingCleaning = await Room.find({ owner: ownerId, status: "cleaning" }).sort({ roomNo: 1 });
 
   res.render("dashboard", {
     currentPage: "dashboard",
@@ -72,6 +75,7 @@ app.get("/dashboard", async (req, res) => {
     pendingOrdersCount,
     roomsCount,
     availableRooms,
+    roomsNeedingCleaning,
     user: req.session.user || null,
   });
 });

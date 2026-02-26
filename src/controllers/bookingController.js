@@ -141,7 +141,7 @@ exports.checkOutBooking = async (req, res) => {
   if (!booking) return res.status(404).send("Booking not found");
   const roomId = booking.room && booking.room._id ? booking.room._id : booking.room;
 
-  const room = await Room.findOneAndUpdate({ _id: roomId, owner: ownerId }, { status: "available" });
+  const room = await Room.findOneAndUpdate({ _id: roomId, owner: ownerId }, { status: "cleaning" });
 
     // Calculate actual check-in and check-out times
     const actualCheckInTime = booking.actualCheckIn ? new Date(booking.actualCheckIn) : new Date(booking.checkIn);

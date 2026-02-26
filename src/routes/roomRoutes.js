@@ -7,5 +7,6 @@ router.post("/add", adminAuth, c.add);
 router.post("/delete", adminAuth, c.delete);
 router.post("/editRoom", adminAuth, c.edit);
 router.post("/:id", adminAuth, c.update);
+router.post("/markClean/:id", adminAuth, c.markClean);
 
 module.exports = router;

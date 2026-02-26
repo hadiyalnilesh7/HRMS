@@ -7,7 +7,7 @@ module.exports = mongoose.model("Room", new mongoose.Schema({
     status: {
       type: String,
       default: "available",
-      enum: ["available", "occupied"],
+      enum: ["available", "occupied", "cleaning"],
       index: true
     },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },

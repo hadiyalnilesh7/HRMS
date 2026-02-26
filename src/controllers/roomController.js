@@ -91,3 +91,21 @@ exports.update = async (req, res) => {
 
     res.redirect('/rooms');
 }
+
+exports.markClean = async (req, res) => {
+    const ownerId = req.session && req.session.user ? req.session.user.id : null;
+    const id = req.body.id || req.params.id;
+    if (!id) return res.redirect('/dashboard');
+
+    try {
+        await Room.findOneAndUpdate(
+            { _id: id, owner: ownerId, status: "cleaning" }, 
+            { status: "available" },
+            { runValidators: true }
+        );
+    } catch (err) {
+        console.log("Error marking room as clean", err);
+    }
+
+    res.redirect('/dashboard');
+}
