@@ -16,7 +16,7 @@ exports.list = async (req, res) => {
         filters.push({ roomNo: { $regex: roomNo, $options: "i" } });
     }
     if (roomType) {
-        filters.push({ type: { $regex: roomType, $options: "i" } });
+        filters.push({ type: roomType });
     }
     if (filters.length > 0) {
         query.$and = filters;
