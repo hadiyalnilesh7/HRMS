@@ -3,6 +3,7 @@ const c = require("../controllers/roomController");
 const adminAuth = require("../middlewares/middleware");
 
 router.get("/", adminAuth, c.list);
+router.get("/cleaning", adminAuth, c.cleaningList);
 router.post("/add", adminAuth, c.add);
 router.post("/delete", adminAuth, c.delete);
 router.post("/editRoom", adminAuth, c.edit);

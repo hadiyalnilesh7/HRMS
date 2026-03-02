@@ -1,138 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HRMS - Hotel Room Management System</title>
+    <title>HRMS - Premium Hotel Management Software</title>
     <link rel="icon" type="image/png" href="/image/logo.png">
+    
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    
+    <!-- Core Stylesheet (Includes landing.css) -->
     <link rel="stylesheet" href="/css/style.css">
-  </head>
-  <body class="home-page">
-    <header class="home-header">
-      <a href="/" class="home-brand" aria-label="HRMS Home">
-        <img src="/image/logo.png" alt="Hotel Management Logo" class="home-brand-logo">
-        <span class="home-brand-text">HRMS</span>
-      </a>
-    </header>
+</head>
+<body class="home-page">
 
-    <section class="session">
-      <div class="content">
-        <h1>Welcome to HRMS</h1>
-        <p>
-          Professional Hotel Room Management System - Manage your hotel
-          operations efficiently and seamlessly
-        </p>
-        <div class="cta-buttons">
-          <a href="/login" class="btn-login">Login</a>
-          <a href="/register" class="btn-register">Sign UP</a>
+    <!-- Glassmorphic Navbar -->
+    <nav class="home-navbar">
+        <a href="/" class="home-brand" aria-label="HRMS Home">
+            <img src="/image/logo.png" alt="Hotel Management Logo" class="home-brand-logo">
+            <span class="home-brand-text">HRMS</span>
+        </a>
+        <div class="home-nav-actions">
+            <a href="/login" class="btn-nav-login">Sign In</a>
+            <a href="/register" class="btn-nav-signup">Get Started</a>
         </div>
-      </div>
+    </nav>
+
+    <!-- Stunning Hero Section -->
+    <section class="hero-section">
+        <div class="hero-container">
+            <!-- Left Content -->
+            <div class="hero-content">
+                <h1>
+                    Manage Your Hotel with <br />
+                    <span class="gradient-text">Absolute Precision.</span>
+                </h1>
+                <p>
+                    Elevate your hospitality business. HRMS is the all-in-one software built to seamlessly handle bookings, streamline housekeeping, and drive your revenue to new heights.
+                </p>
+                <div class="hero-buttons">
+                    <a href="/register" class="btn-primary-lg">
+                        Start for Free <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                    <a href="#features" class="btn-secondary-lg">
+                        Explore Features
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Right Mockup Visual -->
+            <div class="hero-image-wrapper">
+                <div class="hero-image-card">
+                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Beautiful Hotel Dashboard" class="hero-dashboard-mockup" style="aspect-ratio: 16/10; object-fit: cover;">
+                </div>
+            </div>
+        </div>
     </section>
 
-    <section class="features" id="features">
-      <div class="features-container">
-        <h2>✨ Key Features</h2>
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="section-header">
+            <span class="section-subtitle">Powerful Capabilities</span>
+            <h2 class="section-title">Everything you need to run a world-class hotel.</h2>
+        </div>
+
         <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">🏢</div>
-            <h3>Room Management</h3>
-            <p>
-              Efficiently manage your hotel rooms, track availability, set
-              pricing, and monitor room status in real-time.
-            </p>
-          </div>
+            <!-- Feature 1 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper icon-indigo">
+                    <i class="fa-solid fa-bed"></i>
+                </div>
+                <h3>Smart Room Management</h3>
+                <p>Effortlessly track inventory, set dynamic pricing, and monitor real-time cleaning statuses across all your floors.</p>
+            </div>
 
-          <div class="feature-card">
-            <div class="feature-icon">📅</div>
-            <h3>Booking System</h3>
-            <p>
-              Handle guest bookings seamlessly with automated check-in/check-out
-              and reservation management.
-            </p>
-          </div>
+            <!-- Feature 2 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper icon-emerald">
+                    <i class="fa-regular fa-calendar-check"></i>
+                </div>
+                <h3>Frictionless Bookings</h3>
+                <p>Handle your guest reservations seamlessly with an intuitive calendar, rapid check-ins, and one-click check-outs.</p>
+            </div>
 
-          <div class="feature-card">
-            <div class="feature-icon">🍽️</div>
-            <h3>Menu Management</h3>
-            <p>
-              Organize your restaurant menu with categories, pricing, and easy
-              updates for food and beverages.
-            </p>
-          </div>
+            <!-- Feature 3 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper icon-amber">
+                    <i class="fa-solid fa-utensils"></i>
+                </div>
+                <h3>Restaurant & Orders</h3>
+                <p>Fully integrated digital POS. Manage your kitchen menu, track room service orders, and add charges directly to guest folios.</p>
+            </div>
 
-          <div class="feature-card">
-            <div class="feature-icon">🛒</div>
-            <h3>Order System</h3>
-            <p>
-              Process food and beverage orders efficiently with status tracking
-              and order management tools.
-            </p>
-          </div>
+            <!-- Feature 4 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper icon-blue">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <h3>Financial Dashboard</h3>
+                <p>Get rich, actionable insights into your daily revenue, occupancy rates, and overall business performance instantly.</p>
+            </div>
 
-          <div class="feature-card">
-            <div class="feature-icon">📊</div>
-            <h3>Dashboard & Reports</h3>
-            <p>
-              Get real-time insights with comprehensive dashboards and detailed
-              reports on operations and revenue.
-            </p>
-          </div>
+            <!-- Feature 5 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper icon-rose">
+                    <i class="fa-solid fa-broom"></i>
+                </div>
+                <h3>Housekeeping Dispatch</h3>
+                <p>Automatically notify your staff when rooms need cleaning upon checkout to ensure zero delays for new arriving guests.</p>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper icon-purple">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <h3>Automated Invoicing</h3>
+                <p>Generate beautiful, branded PDF invoices combining room charges and food orders with absolute zero manual math required.</p>
+            </div>
         </div>
-      </div>
     </section>
 
-    <section class="stats">
-      <div class="stats-marquee" aria-label="HRMS Stats">
-        <div class="stats-track">
-          <div class="stat">
-            <div class="stat-number">∞</div>
-            <div class="stat-label">Rooms</div>
-          </div>
-          <div class="stat">
-            <div class="stat-number">100%</div>
-            <div class="stat-label">Uptime</div>
-          </div>
-          <div class="stat">
-            <div class="stat-number">24/7</div>
-            <div class="stat-label">Available</div>
-          </div>
-          <div class="stat">
-            <div class="stat-number">Easy</div>
-            <div class="stat-label">To Use</div>
-          </div>
-          <div class="stat">
-            <div class="stat-number">🔒</div>
-            <div class="stat-label">Secure</div>
-          </div>
-          <div class="stat">
-            <div class="stat-number">∞</div>
-            <div class="stat-label">Rooms</div>
-          </div>
-          <div class="stat">
-            <div class="stat-number">100%</div>
-            <div class="stat-label">Uptime</div>
-          </div>
-          <div class="stat">
-            <div class="stat-number">24/7</div>
-            <div class="stat-label">Available</div>
-          </div>
-          <div class="stat">
-            <div class="stat-number">Easy</div>
-            <div class="stat-label">To Use</div>
-          </div>
-          <div class="stat">
-            <div class="stat-number">🔒</div>
-            <div class="stat-label">Secure</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer>
-      <p>
-        &copy; 2026 HRMS - Hotel Room Management System. All rights reserved.
-      </p>
+    <!-- Minimal Footer -->
+    <footer class="landing-footer">
+        <p>&copy; 2026 HRMS Enterprise Software. Empowering hospitality worldwide.</p>
     </footer>
 
-  </body>
+</body>
 </html>

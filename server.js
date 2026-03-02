@@ -5,7 +5,6 @@ const MongoStore = require("connect-mongo").default;
 require("dotenv").config();
 
 const connectDB = require("./src/config/db");
-const upload = require("./src/config/multerConfig");
 const adminAuth = require("./src/middlewares/middleware");
 const Booking = require("./src/models/Booking");
 const Order = require("./src/models/Order");
@@ -41,7 +40,6 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
-  res.locals.upload = upload; // Make upload middleware available
   next();
 });
 
@@ -70,6 +68,28 @@ app.get("/dashboard", adminAuth, async (req, res) => {
   // Fetch rooms that need cleaning
   const roomsNeedingCleaning = await Room.find({ owner: ownerId, status: "cleaning" }).sort({ roomNo: 1 });
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
+  const dailyBookings = await Booking.find({
+    owner: ownerId,
+    status: "checked-out",
+    actualCheckOut: { $gte: today, $lt: tomorrow }
+  });
+  const todayRevenue = dailyBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+
+  const monthlyBookings = await Booking.find({
+    owner: ownerId,
+    status: "checked-out",
+    actualCheckOut: { $gte: firstDayOfMonth, $lt: nextMonth }
+  });
+  const monthRevenue = monthlyBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+
   res.render("dashboard", {
     currentPage: "dashboard",
     bookingsCount,
@@ -77,6 +97,8 @@ app.get("/dashboard", adminAuth, async (req, res) => {
     roomsCount,
     availableRooms,
     roomsNeedingCleaning,
+    todayRevenue,
+    monthRevenue,
     user: req.session.user || null,
   });
 });

@@ -107,5 +107,21 @@ exports.markClean = async (req, res) => {
         console.log("Error marking room as clean", err);
     }
 
-    res.redirect('/dashboard');
+    const referer = req.get('Referrer');
+    res.redirect(referer ? referer : '/dashboard');
+}
+
+exports.cleaningList = async (req, res) => {
+    const ownerId = req.session && req.session.user ? req.session.user.id : null;
+    try {
+        const roomsNeedingCleaning = await Room.find({ owner: ownerId, status: "cleaning" }).sort({ roomNo: 1 });
+        res.render("room-cleaning", {
+            currentPage: 'cleaning',
+            roomsNeedingCleaning,
+            user: req.session.user || null
+        });
+    } catch (err) {
+        console.log("Error fetching rooms needing cleaning", err);
+        res.redirect('/dashboard');
+    }
 }

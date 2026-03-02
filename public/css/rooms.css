@@ -1,0 +1,14 @@
+/* ========================================================================================== */
+/* Room Listings */
+/* ========================================================================================== */
+
+.room-price {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.room-type-badge {
+  font-weight: 500;
+  padding: 0.35em 0.8em;
+  letter-spacing: 0.5px;
+}

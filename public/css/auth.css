@@ -1,0 +1,115 @@
+/* ========================================================================================== */
+/* Auth & Login/Register Styles */
+/* ========================================================================================== */
+
+.login-page, .register-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--bg-body);
+  background-image: radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.1) 0px, transparent 50%);
+}
+
+.login-container, .register-container {
+  width: 100%;
+  max-width: 440px;
+  padding: 2rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card, .register-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255,255,255,0.8);
+}
+
+.login-body, .register-body {
+  padding: 2.5rem;
+}
+
+.login-body h2, .register-body h2 {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.password-wrapper {
+  position: relative;
+}
+.password-toggle {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #9ca3af;
+  z-index: 5;
+  transition: opacity 0.2s;
+}
+.password-toggle:hover { opacity: 1; }
+
+.login-button, .register-button {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.login-button:hover, .register-button:hover {
+  background: linear-gradient(135deg, var(--primary-hover), var(--primary-color));
+  box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.3);
+  transform: translateY(-1px);
+}
+
+.login-footer, .register-footer {
+  padding: 1.5rem;
+  background-color: #f9fafb;
+  text-align: center;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.login-footer a, .register-footer a {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back-home {
+  margin-top: 2rem;
+}
+.back-home a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.back-home a:hover {
+  color: var(--text-main);
+}
