@@ -2,7 +2,6 @@
 <%- include("layouts/sidebar") %>
 
 <div class="dashboard-main px-0 w-100">
-    <!-- Welcome Section -->
     <div class="welcome-section mb-5 mx-0">
         <div class="welcome-content d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
@@ -16,7 +15,6 @@
         </div>
     </div>
 
-    <!-- Core Metrics Grid -->
     <div class="row g-4 mb-5">
         <!-- Today's Revenue -->
         <div class="col-12 col-sm-6 col-xl-4">
@@ -165,60 +163,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Tables Row -->
-    <div class="row g-4">
-        <!-- Cleaning Required Table -->
-        <% if (roomsNeedingCleaning && roomsNeedingCleaning.length > 0) { %>
-        <div class="col-12">
-            <div class="table-custom shadow-sm">
-                <div class="p-4 border-bottom bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="section-title mb-0"><i class="fa-solid fa-exclamation-circle text-danger"></i> Housekeeping Queue</h5>
-                    <a href="/rooms/cleaning" class="btn btn-sm btn-dark rounded-pill px-4 fw-medium">View Dedicated Page</a>
-                </div>
-                <div class="table-responsive">
-                    <table class="table mb-0 table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th class="ps-4">Room No.</th>
-                                <th>Room Type</th>
-                                <th>Severity Status</th>
-                                <th class="text-end pe-4">Quick Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% roomsNeedingCleaning.forEach(room => { %>
-                            <tr>
-                                <td class="ps-4 font-weight-bold align-middle">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: #f8fafc; border: 1px solid #e2e8f0;">
-                                            <i class="fa-solid fa-bed text-slate-500" style="color: #64748b;"></i>
-                                        </div>
-                                        <span class="fw-bold text-dark fs-5"><%= room.roomNo %></span>
-                                    </div>
-                                </td>
-                                <td class="align-middle fw-medium text-secondary"><%= room.type %></td>
-                                <td class="align-middle">
-                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 border border-danger border-opacity-25 shadow-sm">
-                                        <i class="fa-solid fa-broom me-1"></i> Needs Cleaning
-                                    </span>
-                                </td>
-                                <td class="text-end pe-4 align-middle">
-                                    <form action="/rooms/markClean/<%= room._id %>" method="POST" class="d-inline">
-                                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-4 fw-bold">
-                                        <i class="fa-solid fa-check me-1"></i>Mark Clean
-                                    </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <% }) %>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <% } %>
     </div>
 </div>
 
