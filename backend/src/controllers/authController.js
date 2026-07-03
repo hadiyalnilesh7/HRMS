@@ -43,21 +43,26 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  const user = await User.findOne({ email: req.body.email });
-  if (!user) return res.redirect(`/login?error=${encodeURIComponent("Invalid email or password. Please try again.")}`);
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) return res.redirect(`/login?error=${encodeURIComponent("Invalid email or password. Please try again.")}`);
 
-  const match = await bcrypt.compare(req.body.password, user.password);
-  if (!match) return res.redirect(`/login?error=${encodeURIComponent("Invalid email or password. Please try again.")}`);
+    const match = await bcrypt.compare(req.body.password, user.password);
+    if (!match) return res.redirect(`/login?error=${encodeURIComponent("Invalid email or password. Please try again.")}`);
 
-  req.session.user = { 
-    id: user._id, 
-    name: user.name, 
-    email: user.email,
-    hotelName: user.hotelName,
-    selectedRoomTypes: user.selectedRoomTypes || [],
-    selectedMenuCategories: user.selectedMenuCategories || [],
-  };  
-  res.redirect("/dashboard");
+    req.session.user = { 
+      id: user._id, 
+      name: user.name, 
+      email: user.email,
+      hotelName: user.hotelName,
+      selectedRoomTypes: user.selectedRoomTypes || [],
+      selectedMenuCategories: user.selectedMenuCategories || [],
+    };  
+    return res.redirect("/dashboard");
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.redirect(`/login?error=${encodeURIComponent("Unable to log in right now. Please try again.")}`);
+  }
 };
 
 exports.logout = async (req, res) => {
