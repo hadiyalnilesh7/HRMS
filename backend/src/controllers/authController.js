@@ -8,7 +8,8 @@ exports.loginPage = (req, res) => {
   res.render("login", { error });
 };
 exports.registerPage = (req, res) => {
-  res.render("register");
+  const error = req.query.error || null;
+  res.render("register", { error });
 };
 
 exports.register = async (req, res) => {
@@ -16,12 +17,22 @@ exports.register = async (req, res) => {
     const { name, email, hotelName, password, confirmPassword } = req.body;
 
     if (password !== confirmPassword) {
-      return res.redirect(`/register?error=${encodeURIComponent("Passwords do not match")}`);
+      return res.status(400).render("register", {
+        error: "Passwords do not match",
+        name,
+        email,
+        hotelName,
+      });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.redirect(`/register?error=${encodeURIComponent("Email already registered")}`);
+      return res.status(400).render("register", {
+        error: "Email already registered",
+        name,
+        email,
+        hotelName,
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -44,7 +55,12 @@ exports.register = async (req, res) => {
     return res.redirect("/dashboard");
   } catch (error) {
     console.error("Register error:", error);
-    return res.redirect(`/register?error=${encodeURIComponent("Unable to register right now. Please try again.")}`);
+    return res.status(500).render("register", {
+      error: "Unable to register right now. Please try again.",
+      name: req.body?.name || "",
+      email: req.body?.email || "",
+      hotelName: req.body?.hotelName || "",
+    });
   }
 };
 
