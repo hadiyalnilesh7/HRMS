@@ -11,28 +11,35 @@ const Order = require("./src/models/Order");
 const Room = require("./src/models/Room");
 
 const app = express();
-connectDB();
+connectDB().catch((err) => {
+  console.error("Initial MongoDB connection attempt failed:", err);
+});
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use(session({
+const sessionOptions = {
   name: "hrms-session",
   secret: process.env.SESSION_SECRET || "devsecret",
   resave: false,
   saveUninitialized: false,
-
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URL,  
-    collectionName: "sessions",
-  }),
-
   cookie: {
     httpOnly: true,
     secure: false,
     maxAge: 1000 * 60 * 60 * 24 // 1 day
   }
-}));
+};
+
+if (process.env.MONGO_URL) {
+  sessionOptions.store = MongoStore.create({
+    mongoUrl: process.env.MONGO_URL,
+    collectionName: "sessions",
+  });
+} else {
+  console.warn("MONGO_URL is not set; using the default in-memory session store.");
+}
+
+app.use(session(sessionOptions));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "../frontend/views"));
