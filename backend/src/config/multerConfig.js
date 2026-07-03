@@ -7,7 +7,7 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Create folder per user
     const userName = req.session && req.session.user ? req.session.user.name : 'unknown';
-    const uploadDir = path.join(__dirname, `../../public/uploads/idproof/${userName}`);
+    const uploadDir = path.join(__dirname, `../../../frontend/public/uploads/idproof/${userName}`);
     
     // Create directory if it doesn't exist
     fs.mkdirSync(uploadDir, { recursive: true });

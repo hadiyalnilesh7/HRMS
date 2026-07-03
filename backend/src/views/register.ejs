@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - HRMS</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body class="register-page">
+    <div class="register-container">
+      <div class="register-card">
+        <div class="register-body">
+          <form method="POST" action="/register">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Enter your full name"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Hotel Name</label>
+              <input
+                type="text"
+                id="hotelName"
+                name="hotelName"
+                placeholder="Enter your Hotel Name"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div class="password-wrapper">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Create a strong password"
+                  required
+                />
+                <span class="password-toggle" onclick="togglePassword('password')">👁️</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="confirmPassword">Confirm Password</label>
+              <div class="password-wrapper">
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  placeholder="Confirm your password"
+                  required
+                />
+                <span class="password-toggle" onclick="togglePassword('confirmPassword')">👁️</span>
+              </div>
+            </div>
+
+            <button type="submit" class="register-button">
+              Create Account
+            </button>
+          </form>
+        </div>
+
+        <div class="register-footer">
+          <p>Already have an account?</p>
+          <a href="/login">Sign in here</a>
+        </div>
+      </div>
+
+      <div class="back-home">
+        <a href="/">← Back to Home</a>
+      </div>
+    </div>
+
+    <script>
+      function togglePassword(fieldId) {
+        const input = document.getElementById(fieldId);
+        const toggle = event.target;
+        
+        if (input.type === 'password') {
+          input.type = 'text';
+          toggle.textContent = '👁️‍🗨️';
+        } else {
+          input.type = 'password';
+          toggle.textContent = '👁️';
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,272 @@
+<%- include("./layouts/header") %> 
+<%- include("./layouts/sidebar") %>
+
+<div class="dashboard-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">🛎️ Room Service & Orders</h2>
+      <p class="text-muted mb-0">Manage food orders for guests.</p>
+    </div>
+  </div>
+
+  <div class="row g-4 justify-content-center">
+    <!-- Order Form Section -->
+    <div class="col-12 col-xl-7">
+      <div class="card sticky-top" style="top: 20px; z-index: 1;">
+        <div class="card-header bg-white py-3">
+          <h5 class="mb-0"><i class="fa-solid fa-utensils me-2 text-primary"></i> Place New Order</h5>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/order/addOrder" id="orderForm">
+            <!-- Room & Customer Selection -->
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label">Room Number <span class="text-danger">*</span></label>
+                <select id="roomSelect" name="room" class="form-select" required>
+                  <option value="">-- Select Room --</option>
+                  <% if (bookings && bookings.length > 0) { %>
+                    <% bookings.forEach(b => { %>
+                      <option value="<%= b.room._id %>" data-customer="<%= b.customerName %>">Room <%= b.room.roomNo %></option>
+                    <% }) %>
+                  <% } %>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+                <input type="text" id="customerNameInput" name="customerName" class="form-control" placeholder="Auto-filled from room" required readonly>
+              </div>
+            </div>
+
+            <!-- Menu Selection -->
+            <div class="mb-4">
+              <label class="form-label mb-3">Select Menu Items</label>
+              <% if (menu && menu.length > 0) { %>
+                <div class="row g-3">
+                  <% menu.forEach(item => { %>
+                    <div class="col-12 col-md-6">
+                      <div class="menu-item-card p-3 border rounded d-flex justify-content-between align-items-center bg-white shadow-sm h-100">
+                        <div class="menu-details">
+                          <h6 class="menu-name mb-1 fw-bold"><%= item.name %></h6>
+                          <div class="text-primary fw-bold">₹<%= item.price %></div>
+                        </div>
+                        
+                        <div class="quantity-controls d-flex align-items-center bg-light rounded-pill border px-2 py-1">
+                          <button type="button" class="btn btn-sm btn-link text-decoration-none text-danger p-0" 
+                                  onclick="updateQuantity('<%= item._id %>', -1)">
+                              <i class="fa-solid fa-minus"></i>
+                          </button>
+                          <span class="mx-3 fw-bold count-display" id="qty_<%= item._id %>" data-id="<%= item._id %>" data-price="<%= item.price %>">0</span>
+                          <button type="button" class="btn btn-sm btn-link text-decoration-none text-success p-0" 
+                                  onclick="updateQuantity('<%= item._id %>', 1)">
+                              <i class="fa-solid fa-plus"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  <% }) %>
+                </div>
+              <% } else { %>
+                <div class="alert alert-warning">No menu items available.</div>
+              <% } %>
+            </div>
+
+            <!-- Total & Submit -->
+            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded border">
+              <div>
+                <small class="text-muted d-block uppercase">Total Amount</small>
+                <span class="fs-4 fw-bold text-primary">₹<span id="totalAmount">0</span></span>
+              </div>
+              <input type="hidden" name="items" id="itemsInput">
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="fa-solid fa-bell-concierge me-2"></i> Place Order
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order List Section -->
+    <div class="col-12 col-xl-5">
+      <!-- Pending Orders -->
+      <div class="card mb-4">
+        <div class="card-header bg-warning-subtle text-warning-emphasis border-bottom-0 py-3">
+          <h5 class="mb-0"><i class="fa-solid fa-clock me-2"></i> Pending Orders</h5>
+        </div>
+        <div class="card-body p-0">
+          <% if (pendingOrders && pendingOrders.length > 0) { %>
+            <div class="list-group list-group-flush">
+              <% pendingOrders.forEach(o => { %>
+                <div class="list-group-item p-3">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <span class="badge bg-dark rounded-pill mb-2">Room <%= o.room ? o.room.roomNo : 'N/A' %></span>
+                      <h6 class="mb-1"><%= o.customerName %></h6>
+                    </div>
+                    <span class="fs-5 fw-bold text-primary">₹<%= o.total %></span>
+                  </div>
+                  
+                    <% if (Array.isArray(o.items)) { %>
+                      <% 
+                        const counts = {};
+                        o.items.forEach(i => {
+                          counts[i.name] = (counts[i.name] || 0) + 1;
+                        });
+                      %>
+                      <%= Object.entries(counts).map(([name, count]) => `${name} ${count > 1 ? 'x' + count : ''}`).join(', ') %>
+                    <% } else { %>
+                      <%= o.items %>
+                    <% } %>
+                  </div>
+
+                  <form method="POST" action="/order/<%= o._id %>/delivery">
+                    <input type="hidden" name="deliveryStatus" value="delivered">
+                    <button type="submit" class="btn btn-sm btn-success w-100">
+                      <i class="fa-solid fa-check me-1"></i> Mark as Delivered
+                    </button>
+                  </form>
+                </div>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <div class="text-center py-4 text-muted">
+              <i class="fa-solid fa-check-circle fa-2x mb-2 text-success opacity-50"></i>
+              <p class="mb-0">No pending orders!</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Delivered Orders -->
+      <div class="card">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fa-solid fa-history me-2 text-muted"></i> History</h5>
+          
+          <form method="GET" action="/order" class="d-flex gap-2">
+            <input type="text" name="customerName" class="form-control form-control-sm" placeholder="Customer Name" value="<%= typeof customerName !== 'undefined' ? customerName : '' %>">
+            <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-search"></i></button>
+          </form>
+        </div>
+        <div class="card-body p-0">
+          <% if (deliveredOrders && deliveredOrders.length > 0) { %>
+            <div class="list-group list-group-flush">
+              <% deliveredOrders.forEach(o => { %>
+                <div class="list-group-item p-3 opacity-75">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <small class="text-success fw-bold text-uppercase"><i class="fa-solid fa-check-double me-1"></i> Delivered</small>
+                      <h6 class="mb-1 mt-1"><%= o.customerName %> <small class="text-muted fw-normal">(Room <%= o.room ? o.room.roomNo : 'N/A' %>)</small></h6>
+                      <small class="text-muted">
+                        <% if (Array.isArray(o.items)) { %>
+                          <% 
+                            const counts = {};
+                            o.items.forEach(i => {
+                              counts[i.name] = (counts[i.name] || 0) + 1;
+                            });
+                          %>
+                          <%= Object.entries(counts).map(([name, count]) => `${name} ${count > 1 ? 'x' + count : ''}`).join(', ') %>
+                        <% } else { %>
+                            <%= o.items %>
+                        <% } %>
+                      </small>
+                    </div>
+                    <span class="fw-bold">₹<%= o.total %></span>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <div class="p-3 text-center text-muted small">No history found.</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+<script>
+  // DOM Elements
+  const roomSelect = document.getElementById('roomSelect');
+  const customerNameInput = document.getElementById('customerNameInput');
+  const itemsInput = document.getElementById('itemsInput');
+  const totalAmountSpan = document.getElementById('totalAmount');
+  const form = document.getElementById('orderForm');
+  const submitBtn = form.querySelector('button[type="submit"]');
+
+  // Auto-fill customer name when room is selected
+  roomSelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const customerName = selectedOption.getAttribute('data-customer');
+    customerNameInput.value = customerName || '';
+  });
+
+  // Store current quantities
+  const quantities = {};
+
+  // Update Quantity Function
+  window.updateQuantity = function(itemId, change) {
+    if (!quantities[itemId]) quantities[itemId] = 0;
+    
+    const newQty = quantities[itemId] + change;
+    if (newQty >= 0) {
+      quantities[itemId] = newQty;
+      // Update Display
+      const span = document.getElementById(`qty_${itemId}`);
+      if (span) {
+        span.textContent = newQty;
+        // Visual feedback
+        const card = span.closest('.menu-item-card');
+        if (newQty > 0) {
+          card.classList.add('border-primary', 'bg-primary-subtle');
+          card.classList.remove('bg-white');
+        } else {
+          card.classList.remove('border-primary', 'bg-primary-subtle');
+          card.classList.add('bg-white');
+        }
+      }
+      recalculateTotal();
+    }
+  };
+
+  // Recalculate Total and update hidden input
+  function recalculateTotal() {
+    let total = 0;
+    const allItemIds = [];
+    
+    // Iterate over displayed quantity spans to get prices
+    document.querySelectorAll('.count-display').forEach(span => {
+      const id = span.getAttribute('data-id');
+      const price = parseFloat(span.getAttribute('data-price') || 0);
+      const qty = quantities[id] || 0;
+      
+      if (qty > 0) {
+        total += price * qty;
+        // Add ID to list 'qty' times
+        for (let i = 0; i < qty; i++) {
+          allItemIds.push(id);
+        }
+      }
+    });
+
+    totalAmountSpan.textContent = total;
+    itemsInput.value = allItemIds.join(',');
+  }
+
+  // Form Validation
+  form.addEventListener('submit', function(e) {
+    if (!roomSelect.value) {
+      e.preventDefault();
+      alert('Please select a room');
+      return false;
+    }
+    if (!itemsInput.value) {
+      e.preventDefault();
+      alert('Please select at least one menu item');
+      return false;
+    }
+  });
+</script>
+
+<style>
+.cursor-pointer { cursor: pointer; }
+</style>
+
+<%- include("./layouts/footer") %>
