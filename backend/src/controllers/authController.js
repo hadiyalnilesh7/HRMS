@@ -12,34 +12,40 @@ exports.registerPage = (req, res) => {
 };
 
 exports.register = async (req, res) => {
-  const { name, email, hotelName, password, confirmPassword } = req.body;
+  try {
+    const { name, email, hotelName, password, confirmPassword } = req.body;
 
-  if (password !== confirmPassword) {
-    return res.send("Password do not match");
+    if (password !== confirmPassword) {
+      return res.redirect(`/register?error=${encodeURIComponent("Passwords do not match")}`);
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.redirect(`/register?error=${encodeURIComponent("Email already registered")}`);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await User.create({
+      name,
+      email,
+      hotelName,
+      password: hashedPassword,
+    });
+
+    req.session.user = {
+      id: newUser._id,
+      name: newUser.name,
+      hotelName: newUser.hotelName,
+      email: newUser.email,
+      selectedRoomTypes: newUser.selectedRoomTypes || [],
+      selectedMenuCategories: newUser.selectedMenuCategories || [],
+    };
+
+    return res.redirect("/dashboard");
+  } catch (error) {
+    console.error("Register error:", error);
+    return res.redirect(`/register?error=${encodeURIComponent("Unable to register right now. Please try again.")}`);
   }
-
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    return res.send("Email already registered");
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = await User.create({
-    name,
-    email,
-    hotelName,
-    password: hashedPassword,
-  });
-
-  req.session.user = {
-    id: newUser._id,
-    name: newUser.name,
-    hotelName: newUser.hotelName,
-    email: newUser.email,
-    selectedRoomTypes: newUser.selectedRoomTypes || [],
-    selectedMenuCategories: newUser.selectedMenuCategories || [],
-  };
-  res.redirect("/dashboard");
 };
 
 exports.login = async (req, res) => {
