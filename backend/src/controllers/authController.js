@@ -1,7 +1,12 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
+const connectDB = require("../config/db");
 const { sendPasswordResetEmail } = require("../config/emailConfig");
+
+const ensureDBConnection = async () => {
+  await connectDB();
+};
 
 exports.loginPage = (req, res) => {
   const error = req.query.error || null;
@@ -14,6 +19,8 @@ exports.registerPage = (req, res) => {
 
 exports.register = async (req, res) => {
   try {
+    await ensureDBConnection();
+
     const { name, email, hotelName, password, confirmPassword } = req.body;
 
     if (password !== confirmPassword) {
@@ -66,6 +73,8 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
+    await ensureDBConnection();
+
     const user = await User.findOne({ email: req.body.email });
     if (!user) return res.redirect(`/login?error=${encodeURIComponent("Invalid email or password. Please try again.")}`);
 
@@ -110,6 +119,8 @@ exports.forgotPasswordPage = (req, res) => {
 // Handle Forgot Password Request
 exports.forgotPassword = async (req, res) => {
   try {
+    await ensureDBConnection();
+
     const { email } = req.body;
 
     // Check if user exists
@@ -147,6 +158,8 @@ exports.forgotPassword = async (req, res) => {
 // Reset Password Page
 exports.resetPasswordPage = async (req, res) => {
   try {
+    await ensureDBConnection();
+
     const { token } = req.params;
     const error = req.query.error || null;
 
@@ -176,6 +189,8 @@ exports.resetPasswordPage = async (req, res) => {
 // Handle Password Reset
 exports.resetPassword = async (req, res) => {
   try {
+    await ensureDBConnection();
+
     const { token } = req.params;
     const { newPassword, confirmPassword } = req.body;
 
