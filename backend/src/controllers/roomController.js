@@ -128,20 +128,22 @@ exports.markClean = async (req, res) => {
         const id = req.body.id || req.params.id;
         if (!id) return res.redirect('/dashboard');
 
-        const result = await Room.findOneAndUpdate(
-            { _id: id, owner: ownerId },
-            { status: "available" },
-            { runValidators: true, new: true }
-        );
-
-        if (!result) {
+        const room = await Room.findOne({ _id: id, owner: ownerId });
+        if (!room) {
             console.log("Mark clean did not match any room:", { id, ownerId });
+            return res.redirect('/rooms/cleaning');
         }
+
+        room.status = "available";
+        await room.save();
     } catch (err) {
         console.log("Error marking room as clean", err);
     }
 
-    res.redirect('/rooms/cleaning');
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.redirect('/rooms/cleaning?updated=1');
 }
 
 exports.cleaningList = async (req, res) => {
@@ -149,6 +151,9 @@ exports.cleaningList = async (req, res) => {
         await ensureDBConnection();
         const ownerId = req.session && req.session.user ? req.session.user.id : null;
         const roomsNeedingCleaning = await Room.find({ owner: ownerId, status: "cleaning" }).sort({ roomNo: 1 });
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
         return res.render("room-cleaning", {
             currentPage: 'cleaning',
             roomsNeedingCleaning,
