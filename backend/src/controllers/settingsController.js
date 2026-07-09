@@ -43,8 +43,11 @@ exports.saveSettings = async (req, res) => {
             selectedMenuCategories: menuCategories
         });
 
-        req.session.user.selectedRoomTypes = roomTypes;
-        req.session.user.selectedMenuCategories = menuCategories;
+        req.session.user = {
+            ...req.session.user,
+            selectedRoomTypes: roomTypes,
+            selectedMenuCategories: menuCategories
+        };
 
         res.redirect('/settings');
     } catch (err) {
