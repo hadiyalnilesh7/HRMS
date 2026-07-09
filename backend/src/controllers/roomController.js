@@ -128,17 +128,20 @@ exports.markClean = async (req, res) => {
         const id = req.body.id || req.params.id;
         if (!id) return res.redirect('/dashboard');
 
-        await Room.findOneAndUpdate(
-            { _id: id, owner: ownerId, status: "cleaning" }, 
+        const result = await Room.findOneAndUpdate(
+            { _id: id, owner: ownerId },
             { status: "available" },
-            { runValidators: true }
+            { runValidators: true, new: true }
         );
+
+        if (!result) {
+            console.log("Mark clean did not match any room:", { id, ownerId });
+        }
     } catch (err) {
         console.log("Error marking room as clean", err);
     }
 
-    const referer = req.get('Referrer');
-    res.redirect(referer ? referer : '/dashboard');
+    res.redirect('/rooms/cleaning');
 }
 
 exports.cleaningList = async (req, res) => {
