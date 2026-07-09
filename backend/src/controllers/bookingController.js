@@ -1,11 +1,13 @@
 const Booking = require("../models/Booking");
 const Room = require("../models/Room");
 const Order = require("../models/Order");
+const ensureDBConnection = require("../config/dbGuard");
 
 exports.listBooking = async (req, res) => {
-  const ownerId = req.session && req.session.user ? req.session.user.id : null;
-  
   try {
+    await ensureDBConnection();
+
+    const ownerId = req.session && req.session.user ? req.session.user.id : null;
     // Only fetch active bookings
     const activeBookingsQuery = { 
       owner: ownerId, 
@@ -75,73 +77,91 @@ exports.listBooking = async (req, res) => {
       user: req.session.user || null,
       checkedOutBookings: [],
       from: undefined,
-      to: undefined
+      to: undefined,
+      user: req.session.user || null,
     });
   }
 };
 
 exports.addBooking = async (req, res) => {
-  const { customerName, customerNumber, room, checkIn, checkOut } = req.body;
-  const ownerId = req.session && req.session.user ? req.session.user.id : null;
-  const roomData = await Room.findOne({ _id: room, owner: ownerId });
-  if (!roomData) return res.status(404).send("Room not found");
-  const days = Math.max(
-    1,
-    (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24),
-  );
-  const totalAmount = days * roomData.pricePerNight;
+  try {
+    await ensureDBConnection();
 
-  // Handle uploaded file - store the filename/path
-  let customerImage = null;
-  if (req.file) {
-    customerImage = `/uploads/${ownerId}/${req.file.filename}`;
+    const { customerName, customerNumber, room, checkIn, checkOut } = req.body;
+    const ownerId = req.session && req.session.user ? req.session.user.id : null;
+    const roomData = await Room.findOne({ _id: room, owner: ownerId });
+    if (!roomData) return res.status(404).send("Room not found");
+    const days = Math.max(
+      1,
+      (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24),
+    );
+    const totalAmount = days * roomData.pricePerNight;
+
+    // Handle uploaded file - store the filename/path
+    let customerImage = null;
+    if (req.file) {
+      customerImage = `/uploads/${ownerId}/${req.file.filename}`;
+    }
+
+    await Booking.create({
+      customerName,
+      customerNumber,
+      customerImage,
+      room,
+      checkIn,
+      checkOut,
+      totalAmount,
+      owner: ownerId
+    });
+
+    roomData.status = "occupied";
+    await roomData.save();
+
+    return res.redirect("/booking");
+  } catch (error) {
+    console.error("Error adding booking:", error);
+    return res.redirect("/booking");
   }
-
-  await Booking.create({
-    customerName,
-    customerNumber,
-    customerImage,
-    room,
-    checkIn,
-    checkOut,
-    totalAmount,
-    owner: ownerId
-  });
-
-  roomData.status = "occupied";
-  await roomData.save();
-
-  res.redirect("/booking");
 };
 
 exports.checkInBooking = async (req, res) => {
   const { bookingId } = req.params;
 
-  const ownerId = req.session && req.session.user ? req.session.user.id : null;
-  const booking = await Booking.findOneAndUpdate(
-    { _id: bookingId, owner: ownerId },
-    { status: "checked-in", actualCheckIn: new Date() },
-    { new: true },
-  );
+  try {
+    await ensureDBConnection();
 
-  if (!booking) return res.status(404).send("Booking not found");
+    const ownerId = req.session && req.session.user ? req.session.user.id : null;
+    const booking = await Booking.findOneAndUpdate(
+      { _id: bookingId, owner: ownerId },
+      { status: "checked-in", actualCheckIn: new Date() },
+      { new: true },
+    );
 
-  res.redirect("/booking");
+    if (!booking) return res.status(404).send("Booking not found");
+
+    return res.redirect("/booking");
+  } catch (error) {
+    console.error("Error checking in booking:", error);
+    return res.redirect("/booking");
+  }
 };
 
 exports.checkOutBooking = async (req, res) => {
   const { bookingId } = req.params;
-  const ownerId = req.session && req.session.user ? req.session.user.id : null;
-  const booking = await Booking.findOneAndUpdate(
-    { _id: bookingId, owner: ownerId },
-    { status: "checked-out", actualCheckOut: new Date() },
-    { new: true },
-  ).populate("room");
+  try {
+    await ensureDBConnection();
 
-  if (!booking) return res.status(404).send("Booking not found");
-  const roomId = booking.room && booking.room._id ? booking.room._id : booking.room;
+    const ownerId = req.session && req.session.user ? req.session.user.id : null;
+    const booking = await Booking.findOneAndUpdate(
+      { _id: bookingId, owner: ownerId },
+      { status: "checked-out", actualCheckOut: new Date() },
+      { new: true },
+    ).populate("room");
 
-  const room = await Room.findOneAndUpdate({ _id: roomId, owner: ownerId }, { status: "cleaning" });
+    if (!booking) return res.status(404).send("Booking not found");
+    const roomId = booking.room && booking.room._id ? booking.room._id : booking.room;
+
+    const room = await Room.findOneAndUpdate({ _id: roomId, owner: ownerId }, { status: "cleaning" });
 
     // Calculate actual check-in and check-out times
     const actualCheckInTime = booking.actualCheckIn ? new Date(booking.actualCheckIn) : new Date(booking.checkIn);
@@ -208,5 +228,9 @@ exports.checkOutBooking = async (req, res) => {
     checkOutTime: actualCheckOutTime.toLocaleTimeString()
   };
 
-  res.redirect("/booking");
+    return res.redirect("/booking");
+  } catch (error) {
+    console.error("Error checking out booking:", error);
+    return res.redirect("/booking");
+  }
 };

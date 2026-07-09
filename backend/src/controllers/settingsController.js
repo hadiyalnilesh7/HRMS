@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const ensureDBConnection = require("../config/dbGuard");
 
 exports.settingsPage = async (req, res) => {
     const userId = req.session && req.session.user ? req.session.user.id : null;
@@ -7,15 +8,22 @@ exports.settingsPage = async (req, res) => {
     }
 
     try {
+        await ensureDBConnection();
         const user = await User.findById(userId);
         res.render('settings', {
             currentPage: 'settings',
             selectedRoomTypes: user.selectedRoomTypes || [],
-            selectedMenuCategories: user.selectedMenuCategories || []
+            selectedMenuCategories: user.selectedMenuCategories || [],
+            user: req.session.user || null,
         });
     } catch (err) {
         console.log("Error loading settings page", err);
-        res.redirect('/dashboard');
+        res.status(500).render('settings', {
+            currentPage: 'settings',
+            selectedRoomTypes: [],
+            selectedMenuCategories: [],
+            user: req.session.user || null,
+        });
     }
 }
 
@@ -26,6 +34,7 @@ exports.saveSettings = async (req, res) => {
     }
 
     try {
+        await ensureDBConnection();
         const roomTypes = Array.isArray(req.body.roomTypes) ? req.body.roomTypes : (req.body.roomTypes ? [req.body.roomTypes] : []);
         const menuCategories = Array.isArray(req.body.menuCategories) ? req.body.menuCategories : (req.body.menuCategories ? [req.body.menuCategories] : []);
 
@@ -51,6 +60,7 @@ exports.getSettings = async (req, res) => {
     }
 
     try {
+        await ensureDBConnection();
         const user = await User.findById(userId);
         res.json({
             selectedRoomTypes: user.selectedRoomTypes || [],

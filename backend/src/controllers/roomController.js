@@ -1,52 +1,76 @@
 const Room = require("../models/Room");
+const ensureDBConnection = require("../config/dbGuard");
 
 exports.list = async (req, res) => {
-    const ownerId = req.session && req.session.user ? req.session.user.id : null;
-    const selectedRoomTypes = req.session && req.session.user && req.session.user.selectedRoomTypes ? req.session.user.selectedRoomTypes : [];
-    const roomNo = (req.query.roomNo || "").trim();
-    const roomType = (req.query.roomType || "").trim();
-    
-    let query = { owner: ownerId };
-    if (selectedRoomTypes.length > 0) {
-        query.type = { $in: selectedRoomTypes };
-    }
+    try {
+        await ensureDBConnection();
 
-    const filters = [];
-    if (roomNo) {
-        filters.push({ roomNo: { $regex: roomNo, $options: "i" } });
-    }
-    if (roomType) {
-        filters.push({ type: roomType });
-    }
-    if (filters.length > 0) {
-        query.$and = filters;
-    }
-    
-    const rooms = await Room.find(query).sort({ roomNo: 1 });
-    const roomsCount = rooms.length;
+        const ownerId = req.session && req.session.user ? req.session.user.id : null;
+        const selectedRoomTypes = req.session && req.session.user && req.session.user.selectedRoomTypes ? req.session.user.selectedRoomTypes : [];
+        const roomNo = (req.query.roomNo || "").trim();
+        const roomType = (req.query.roomType || "").trim();
+        
+        let query = { owner: ownerId };
+        if (selectedRoomTypes.length > 0) {
+            query.type = { $in: selectedRoomTypes };
+        }
 
-    res.render("rooms", {
-        rooms,
-        currentPage : 'rooms',
-        roomsCount,
-        selectedRoomTypes: selectedRoomTypes,
-        roomNo,
-        roomType
-    })
+        const filters = [];
+        if (roomNo) {
+            filters.push({ roomNo: { $regex: roomNo, $options: "i" } });
+        }
+        if (roomType) {
+            filters.push({ type: roomType });
+        }
+        if (filters.length > 0) {
+            query.$and = filters;
+        }
+        
+        const rooms = await Room.find(query).sort({ roomNo: 1 });
+        const roomsCount = rooms.length;
+
+        return res.render("rooms", {
+            rooms,
+            currentPage : 'rooms',
+            roomsCount,
+            selectedRoomTypes: selectedRoomTypes,
+            roomNo,
+            roomType,
+            user: req.session.user || null,
+        })
+    } catch (error) {
+        console.error("Error loading rooms page:", error);
+        return res.status(500).render("rooms", {
+            rooms: [],
+            currentPage: 'rooms',
+            roomsCount: 0,
+            selectedRoomTypes: [],
+            roomNo: "",
+            roomType: "",
+            user: req.session.user || null,
+        });
+    }
 }
 
 exports.add = async (req, res) => {
-    const ownerId = req.session && req.session.user ? req.session.user.id : null;
-    await Room.create(Object.assign({}, req.body, { owner: ownerId }));
-    res.redirect("/rooms")
+    try {
+        await ensureDBConnection();
+        const ownerId = req.session && req.session.user ? req.session.user.id : null;
+        await Room.create(Object.assign({}, req.body, { owner: ownerId }));
+        return res.redirect("/rooms")
+    } catch (error) {
+        console.error("Error adding room:", error);
+        return res.redirect("/rooms");
+    }
 }
 
 exports.delete = async (req, res) => {
-    const ownerId = req.session && req.session.user ? req.session.user.id : null;
-    const id = req.body.id || req.params.id;
-    if (!id) return res.redirect('/rooms');
-
     try {
+        await ensureDBConnection();
+        const ownerId = req.session && req.session.user ? req.session.user.id : null;
+        const id = req.body.id || req.params.id;
+        if (!id) return res.redirect('/rooms');
+
         await Room.deleteOne({ _id: id, owner: ownerId });
     } catch (err) {
         console.log("Error fetching deleting Room", err);
@@ -56,12 +80,13 @@ exports.delete = async (req, res) => {
 }
 
 exports.edit = async (req, res) => {
-    const ownerId = req.session && req.session.user ? req.session.user.id : null;
-    const selectedRoomTypes = req.session && req.session.user && req.session.user.selectedRoomTypes ? req.session.user.selectedRoomTypes : [];
-    const id = req.body.id || req.params.id;
-    if (!id) return res.redirect('/rooms');
-
     try {
+        await ensureDBConnection();
+        const ownerId = req.session && req.session.user ? req.session.user.id : null;
+        const selectedRoomTypes = req.session && req.session.user && req.session.user.selectedRoomTypes ? req.session.user.selectedRoomTypes : [];
+        const id = req.body.id || req.params.id;
+        if (!id) return res.redirect('/rooms');
+
         const room = await Room.findOne({ _id: id, owner: ownerId });
         if (!room) return res.redirect('/rooms');
         return res.render("editRoom", { room, selectedRoomTypes });
@@ -73,17 +98,18 @@ exports.edit = async (req, res) => {
 }
 
 exports.update = async (req, res) => {
-    const ownerId = req.session && req.session.user ? req.session.user.id : null;
-    const id = req.body.id || req.params.id;
-    if (!id) return res.redirect('/rooms');
-
-    const update = {
-        roomNo: req.body.roomNo,
-        type: req.body.type,
-        pricePerNight: req.body.pricePerNight
-    };
-
     try {
+        await ensureDBConnection();
+        const ownerId = req.session && req.session.user ? req.session.user.id : null;
+        const id = req.body.id || req.params.id;
+        if (!id) return res.redirect('/rooms');
+
+        const update = {
+            roomNo: req.body.roomNo,
+            type: req.body.type,
+            pricePerNight: req.body.pricePerNight
+        };
+
         await Room.findOneAndUpdate({ _id: id, owner: ownerId }, update, { runValidators: true });
     } catch (err) {
         console.log("Error updating Room", err);
@@ -93,11 +119,12 @@ exports.update = async (req, res) => {
 }
 
 exports.markClean = async (req, res) => {
-    const ownerId = req.session && req.session.user ? req.session.user.id : null;
-    const id = req.body.id || req.params.id;
-    if (!id) return res.redirect('/dashboard');
-
     try {
+        await ensureDBConnection();
+        const ownerId = req.session && req.session.user ? req.session.user.id : null;
+        const id = req.body.id || req.params.id;
+        if (!id) return res.redirect('/dashboard');
+
         await Room.findOneAndUpdate(
             { _id: id, owner: ownerId, status: "cleaning" }, 
             { status: "available" },
@@ -112,16 +139,21 @@ exports.markClean = async (req, res) => {
 }
 
 exports.cleaningList = async (req, res) => {
-    const ownerId = req.session && req.session.user ? req.session.user.id : null;
     try {
+        await ensureDBConnection();
+        const ownerId = req.session && req.session.user ? req.session.user.id : null;
         const roomsNeedingCleaning = await Room.find({ owner: ownerId, status: "cleaning" }).sort({ roomNo: 1 });
-        res.render("room-cleaning", {
+        return res.render("room-cleaning", {
             currentPage: 'cleaning',
             roomsNeedingCleaning,
             user: req.session.user || null
         });
     } catch (err) {
         console.log("Error fetching rooms needing cleaning", err);
-        res.redirect('/dashboard');
+        return res.status(500).render("room-cleaning", {
+            currentPage: 'cleaning',
+            roomsNeedingCleaning: [],
+            user: req.session.user || null
+        });
     }
 }
