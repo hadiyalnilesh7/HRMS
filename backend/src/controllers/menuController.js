@@ -1,4 +1,5 @@
 const Menu = require("../models/Menu");
+const User = require("../models/User");
 const ensureDBConnection = require("../config/dbGuard");
 
 exports.menuPage = async (req, res) => {
@@ -6,7 +7,8 @@ exports.menuPage = async (req, res) => {
         await ensureDBConnection();
 
         const ownerId = req.session && req.session.user ? req.session.user.id : null;
-        const selectedMenuCategories = req.session && req.session.user && req.session.user.selectedMenuCategories ? req.session.user.selectedMenuCategories : [];
+        const user = ownerId ? await User.findById(ownerId).select("selectedMenuCategories") : null;
+        const selectedMenuCategories = user && Array.isArray(user.selectedMenuCategories) ? user.selectedMenuCategories : (req.session && req.session.user && req.session.user.selectedMenuCategories ? req.session.user.selectedMenuCategories : []);
         const search = (req.query.search || "").trim();
         const category = (req.query.category || "").trim();
 
@@ -84,7 +86,8 @@ exports.editMenu = async (req, res) => {
     try {
         await ensureDBConnection();
         const ownerId = req.session && req.session.user ? req.session.user.id : null;
-        const selectedMenuCategories = req.session && req.session.user && req.session.user.selectedMenuCategories ? req.session.user.selectedMenuCategories : [];
+        const user = ownerId ? await User.findById(ownerId).select("selectedMenuCategories") : null;
+        const selectedMenuCategories = user && Array.isArray(user.selectedMenuCategories) ? user.selectedMenuCategories : (req.session && req.session.user && req.session.user.selectedMenuCategories ? req.session.user.selectedMenuCategories : []);
         const id = req.body.id || req.params.id;
         if (!id) return res.redirect('/menu');
 

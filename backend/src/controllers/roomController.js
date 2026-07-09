@@ -1,4 +1,5 @@
 const Room = require("../models/Room");
+const User = require("../models/User");
 const ensureDBConnection = require("../config/dbGuard");
 
 exports.list = async (req, res) => {
@@ -6,7 +7,8 @@ exports.list = async (req, res) => {
         await ensureDBConnection();
 
         const ownerId = req.session && req.session.user ? req.session.user.id : null;
-        const selectedRoomTypes = req.session && req.session.user && req.session.user.selectedRoomTypes ? req.session.user.selectedRoomTypes : [];
+        const user = ownerId ? await User.findById(ownerId).select("selectedRoomTypes") : null;
+        const selectedRoomTypes = user && Array.isArray(user.selectedRoomTypes) ? user.selectedRoomTypes : (req.session && req.session.user && req.session.user.selectedRoomTypes ? req.session.user.selectedRoomTypes : []);
         const roomNo = (req.query.roomNo || "").trim();
         const roomType = (req.query.roomType || "").trim();
         
@@ -83,7 +85,8 @@ exports.edit = async (req, res) => {
     try {
         await ensureDBConnection();
         const ownerId = req.session && req.session.user ? req.session.user.id : null;
-        const selectedRoomTypes = req.session && req.session.user && req.session.user.selectedRoomTypes ? req.session.user.selectedRoomTypes : [];
+        const user = ownerId ? await User.findById(ownerId).select("selectedRoomTypes") : null;
+        const selectedRoomTypes = user && Array.isArray(user.selectedRoomTypes) ? user.selectedRoomTypes : (req.session && req.session.user && req.session.user.selectedRoomTypes ? req.session.user.selectedRoomTypes : []);
         const id = req.body.id || req.params.id;
         if (!id) return res.redirect('/rooms');
 
