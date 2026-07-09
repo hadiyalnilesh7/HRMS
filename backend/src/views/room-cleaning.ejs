@@ -39,6 +39,7 @@
                         </td>
                         <td class="text-end pe-4" data-label="Actions">
                           <form method="POST" action="/rooms/markClean/<%= r._id %>" class="d-inline" data-confirm="Mark room <%= r.roomNo %> as clean and available?">
+                            <input type="hidden" name="id" value="<%= r._id %>">
                             <button type="submit" class="btn btn-sm btn-success">
                               <i class="fa-solid fa-check me-1"></i> Mark as Clean
                             </button>

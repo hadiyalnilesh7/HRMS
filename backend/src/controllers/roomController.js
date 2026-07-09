@@ -125,15 +125,16 @@ exports.markClean = async (req, res) => {
     try {
         await ensureDBConnection();
         const ownerId = req.session && req.session.user ? req.session.user.id : null;
-        const id = req.body.id || req.params.id;
+        const id = req.params.id || req.body.id;
         if (!id) return res.redirect('/dashboard');
 
-        const result = await Room.updateOne(
+        const updatedRoom = await Room.findOneAndUpdate(
             { _id: id, owner: ownerId },
-            { $set: { status: "available" } }
+            { status: "available" },
+            { new: true, runValidators: true }
         );
 
-        if (!result.matchedCount) {
+        if (!updatedRoom) {
             console.log("Mark clean did not match any room:", { id, ownerId });
         }
     } catch (err) {
