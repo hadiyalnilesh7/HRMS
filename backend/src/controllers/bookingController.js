@@ -89,13 +89,28 @@ exports.addBooking = async (req, res) => {
 
     const { customerName, customerNumber, room, checkIn, checkOut } = req.body;
     const ownerId = req.session && req.session.user ? req.session.user.id : null;
+
+    if (!customerName || !customerNumber || !room || !checkIn || !checkOut) {
+      return res.status(400).send("All booking fields are required.");
+    }
+
     const roomData = await Room.findOne({ _id: room, owner: ownerId });
     if (!roomData) return res.status(404).send("Room not found");
-    const days = Math.max(
-      1,
-      (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24),
-    );
-    const totalAmount = days * roomData.pricePerNight;
+
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+
+    if (Number.isNaN(checkInDate.getTime()) || Number.isNaN(checkOutDate.getTime())) {
+      return res.status(400).send("Invalid check-in or check-out date.");
+    }
+
+    if (checkOutDate <= checkInDate) {
+      return res.status(400).send("Check-out date must be after check-in date.");
+    }
+
+    const nights = Math.max(1, Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)));
+    const pricePerNight = Number(roomData.pricePerNight) || 0;
+    const totalAmount = nights * pricePerNight;
 
     // Handle uploaded file - store the filename/path
     let customerImage = null;
@@ -108,8 +123,8 @@ exports.addBooking = async (req, res) => {
       customerNumber,
       customerImage,
       room,
-      checkIn,
-      checkOut,
+      checkIn: checkInDate,
+      checkOut: checkOutDate,
       totalAmount,
       owner: ownerId
     });

@@ -8,11 +8,19 @@ const uploadRoot = isVercel
   ? path.join(os.tmpdir(), "hrms", "uploads", "idproof")
   : path.join(__dirname, "../../../frontend/public/uploads/idproof");
 
+function safeSegment(value) {
+  return String(value || "unknown")
+    .trim()
+    .replace(/[^a-zA-Z0-9-_]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "") || "unknown";
+}
+
 // Configure multer for ID proof uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Create folder per user
-    const userName = req.session && req.session.user ? req.session.user.name : 'unknown';
+    const userName = safeSegment(req.session && req.session.user ? req.session.user.name : 'unknown');
     const uploadDir = path.join(uploadRoot, userName);
     
     // Create directory if it doesn't exist
@@ -21,7 +29,7 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const customerName = req.body && req.body.customerName ? req.body.customerName : 'unknown';
+    const customerName = safeSegment(req.body && req.body.customerName ? req.body.customerName : 'unknown');
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, customerName + '-' + uniqueSuffix + path.extname(file.originalname));
   }
