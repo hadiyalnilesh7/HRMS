@@ -5,7 +5,21 @@ const connectDB = require("../config/db");
 const { sendPasswordResetEmail } = require("../config/emailConfig");
 
 const ensureDBConnection = async () => {
-  await connectDB();
+  const connection = await connectDB();
+
+  if (connection === null && (!process.env.MONGO_URL || process.env.MONGO_URL.trim() === "")) {
+    const error = new Error("MONGO_URL is missing in the Vercel environment.");
+    error.statusCode = 500;
+    throw error;
+  }
+
+  if (connection === null && process.env.MONGO_URL) {
+    const error = new Error("Unable to connect to MongoDB. Check the Vercel MONGO_URL value and Atlas network access.");
+    error.statusCode = 500;
+    throw error;
+  }
+
+  return connection;
 };
 
 exports.loginPage = (req, res) => {
@@ -63,7 +77,7 @@ exports.register = async (req, res) => {
   } catch (error) {
     console.error("Register error:", error);
     return res.status(500).render("register", {
-      error: "Unable to register right now. Please try again.",
+      error: error.message || "Unable to register right now. Please try again.",
       name: req.body?.name || "",
       email: req.body?.email || "",
       hotelName: req.body?.hotelName || "",
@@ -92,7 +106,7 @@ exports.login = async (req, res) => {
     return res.redirect("/dashboard");
   } catch (error) {
     console.error("Login error:", error);
-    return res.redirect(`/login?error=${encodeURIComponent("Unable to log in right now. Please try again.")}`);
+    return res.redirect(`/login?error=${encodeURIComponent(error.message || "Unable to log in right now. Please try again.")}`);
   }
 };
 
@@ -151,7 +165,7 @@ exports.forgotPassword = async (req, res) => {
     }
   } catch (error) {
     console.error("Forgot password error:", error);
-    return res.redirect(`/forgot-password?error=${encodeURIComponent("An error occurred")}`);
+    return res.redirect(`/forgot-password?error=${encodeURIComponent(error.message || "An error occurred")}`);
   }
 };
 
@@ -181,7 +195,7 @@ exports.resetPasswordPage = async (req, res) => {
     console.error("Reset password page error:", error);
     res.render("resetPassword", {
       token: null,
-      error: "An error occurred",
+      error: error.message || "An error occurred",
     });
   }
 };
@@ -221,6 +235,6 @@ exports.resetPassword = async (req, res) => {
     res.redirect(`/login?message=${encodeURIComponent("Password reset successfully. Please login with your new password")}`);
   } catch (error) {
     console.error("Reset password error:", error);
-    res.redirect(`/reset-password/${req.params.token}?error=${encodeURIComponent("An error occurred")}`);
+    res.redirect(`/reset-password/${req.params.token}?error=${encodeURIComponent(error.message || "An error occurred")}`);
   }
 };
