@@ -2,6 +2,7 @@ const Booking = require("../models/Booking");
 const Room = require("../models/Room");
 const Order = require("../models/Order");
 const ensureDBConnection = require("../config/dbGuard");
+const { COOKIE_NAME, buildFlashCookie, clearFlashCookie, decodeFlashCookie } = require("../config/flashCookie");
 
 exports.listBooking = async (req, res) => {
   try {
@@ -19,8 +20,19 @@ exports.listBooking = async (req, res) => {
     const availableRooms = await Room.find({ status: "available", owner: ownerId });
     const bookingCount = booking.length;
     // Handle checkout summary
-    const checkoutSummary = req.session.checkoutSummary || null;
-    delete req.session.checkoutSummary;
+    const sessionSecret = process.env.SESSION_SECRET || "devsecret";
+    const cookies = (req.headers.cookie || "").split(";").reduce((acc, pair) => {
+      const index = pair.indexOf("=");
+      if (index === -1) return acc;
+      const name = pair.slice(0, index).trim();
+      const value = pair.slice(index + 1).trim();
+      if (name) acc[name] = value;
+      return acc;
+    }, {});
+    const checkoutSummary = decodeFlashCookie(cookies[COOKIE_NAME], sessionSecret);
+    if (checkoutSummary) {
+      res.setHeader("Set-Cookie", clearFlashCookie(Boolean(process.env.VERCEL || process.env.NODE_ENV === "production")));
+    }
 
     // Date range filtering for checked-out bookings
     const from = (req.query.from || "").trim();
@@ -228,8 +240,10 @@ exports.checkOutBooking = async (req, res) => {
   });
   const foodItems = Array.from(foodItemsMap.values());
 
-  // Store checkout summary in session (single-use)
-  req.session.checkoutSummary = {
+  // Store checkout summary in a short-lived flash cookie (single-use)
+  const sessionSecret = process.env.SESSION_SECRET || "devsecret";
+  const isProduction = Boolean(process.env.VERCEL || process.env.NODE_ENV === "production");
+  res.setHeader("Set-Cookie", buildFlashCookie({
     customerName: booking.customerName,
     roomNumber: booking.room.roomNo,
     roomCharges: actualRoomCharges,
@@ -241,7 +255,7 @@ exports.checkOutBooking = async (req, res) => {
     nightsStayed: nightsStayed,
     checkOutDate: actualCheckOutTime.toLocaleDateString(),
     checkOutTime: actualCheckOutTime.toLocaleTimeString()
-  };
+  }, sessionSecret, isProduction));
 
     return res.redirect("/booking");
   } catch (error) {
