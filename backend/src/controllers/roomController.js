@@ -128,14 +128,14 @@ exports.markClean = async (req, res) => {
         const id = req.body.id || req.params.id;
         if (!id) return res.redirect('/dashboard');
 
-        const room = await Room.findOne({ _id: id, owner: ownerId });
-        if (!room) {
-            console.log("Mark clean did not match any room:", { id, ownerId });
-            return res.redirect('/rooms/cleaning');
-        }
+        const result = await Room.updateOne(
+            { _id: id, owner: ownerId },
+            { $set: { status: "available" } }
+        );
 
-        room.status = "available";
-        await room.save();
+        if (!result.matchedCount) {
+            console.log("Mark clean did not match any room:", { id, ownerId });
+        }
     } catch (err) {
         console.log("Error marking room as clean", err);
     }
@@ -143,7 +143,7 @@ exports.markClean = async (req, res) => {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
-    res.redirect('/rooms/cleaning?updated=1');
+    res.redirect('/rooms?updated=1');
 }
 
 exports.cleaningList = async (req, res) => {
