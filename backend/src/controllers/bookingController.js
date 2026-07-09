@@ -100,7 +100,7 @@ exports.addBooking = async (req, res) => {
     // Handle uploaded file - store the filename/path
     let customerImage = null;
     if (req.file) {
-      customerImage = `/uploads/${ownerId}/${req.file.filename}`;
+      customerImage = req.file.path || req.file.filename;
     }
 
     await Booking.create({

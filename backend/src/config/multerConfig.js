@@ -1,13 +1,19 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
+
+const isVercel = Boolean(process.env.VERCEL || process.env.NODE_ENV === "production");
+const uploadRoot = isVercel
+  ? path.join(os.tmpdir(), "hrms", "uploads", "idproof")
+  : path.join(__dirname, "../../../frontend/public/uploads/idproof");
 
 // Configure multer for ID proof uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Create folder per user
     const userName = req.session && req.session.user ? req.session.user.name : 'unknown';
-    const uploadDir = path.join(__dirname, `../../../frontend/public/uploads/idproof/${userName}`);
+    const uploadDir = path.join(uploadRoot, userName);
     
     // Create directory if it doesn't exist
     fs.mkdirSync(uploadDir, { recursive: true });
